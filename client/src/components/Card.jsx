@@ -37,7 +37,7 @@ export default function Card({rank, suit, faceUp = true, width = 80}) {
     if (!faceUp) { //if the card is face down
         return (
             <View style = {[styles.card, {width, height, backgroundColor: "#1a4a8a"}]}>
-                <View style = {style.backPattern} />
+                <View style = {styles.backPattern} />
             </View>
         )
     }
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
         justifyContent: "space-between"
     },
     cornerTop: {alignItems: "flex-start"},
-    cornerBot: {alignItems: "flex-start"},
+    cornerBot: {alignItems: "flex-end"},
     cornerRank: {fontSize: 13, fontWeight: "500", lineHeight: 15},
     cornerSuit: {fontSize: 11, lineHeight: 13},
     centerArea: {flex: 1},
