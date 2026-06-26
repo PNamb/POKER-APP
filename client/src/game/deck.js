@@ -1,7 +1,7 @@
 //rank -> 0 = 2, 1 = 3, ..., 12 = A
 //suite -> 0 = c, 1 = h, 2 = d, 3 = s
 export const RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]
-export const SUITS = ["c", "h", "d", "s"]
+export const SUITS = ["clubs", "hearts", "diamonds", "spades"]
 
 export const cardRank = (card) => Math.floor(card / 4)
 export const cardSuit = (card) => card % 4
