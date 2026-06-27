@@ -1,12 +1,13 @@
 //rank -> 0 = 2, 1 = 3, ..., 12 = A
-//suite -> 0 = c, 1 = h, 2 = d, 3 = s
+//suite -> 0 = clubs, 1 = hearts, 2 = diamonds, 3 = spades
 export const RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]
 export const SUITS = ["clubs", "hearts", "diamonds", "spades"]
 
-export const cardRank = (card) => Math.floor(card / 4)
-export const cardSuit = (card) => card % 4
 
-export const cardName = (card) => SUITS[cardSuit(card)] + RANKS[cardRank(card)] //for the UI
+export const cardRank = (card) => RANKS[Math.floor(card / 4)]
+export const cardSuit = (card) => SUITS[card % 4]
+
+export const cardName = (card) => cardSuit(card) + cardRank(card) //for the UI
 
 export function freshDeck() { //make a new deck
     return Array.from({length: 52}, (_, i) => i)

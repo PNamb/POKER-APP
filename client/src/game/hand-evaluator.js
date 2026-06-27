@@ -12,6 +12,8 @@ export const HAND_RANKS = { //hand values for reference
     STRAIGHT_FLUSH: 8
 }
 
+const rankIndex = (card) => Math.floor(card / 4)
+
 function eval5(cards) { //evaluate a 5 card hand; returns an [hand_score, kicker] pair
     function checkStraight(ranks) { //function to check for a straight
         if (ranks.join(",") === "0,1,2,3,12") return [true, 3]
@@ -22,7 +24,7 @@ function eval5(cards) { //evaluate a 5 card hand; returns an [hand_score, kicker
         }
         return [true, ranks.at(-1)]
     }
-    const ranks = cards.map(cardRank).sort((a, b) => a - b) //ranks of the cards, in ascending sorted order
+    const ranks = cards.map(rankIndex).sort((a, b) => a - b) //ranks of the cards, in ascending sorted order
     const suits = cards.map(cardSuit) 
 
     const count = {} //frequency of each rank
