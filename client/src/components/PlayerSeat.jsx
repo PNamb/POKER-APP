@@ -19,16 +19,18 @@ export default function PlayerSeat({
     cardWidth = 60,
     style
 }) {
-    if (seatState === SEAT_STATES.EMPTY) {
+    if (seatState === SEAT_STATES.EMPTY) { //render empty seat and skip everything else
+        return (
         <View style = {[styles.seat, styles.emptySeat, style]}>
             <Text style = {styles.emptyLabel}>Empty</Text>
         </View>
+        )
     }
     
-    const faceUp = isSelf || seatState === SEAT_STATES.FOLDED
-    const dimmed = seatState === SEAT_STATES.FOLDED
+    const faceUp = isSelf || seatState === SEAT_STATES.FOLDED //show cards if the player has folded
+    const dimmed = seatState === SEAT_STATES.FOLDED //dimm cards if the player has folded
 
-    return (
+    return ( //render hand (cards), then info-bar, then chips
         <View style = {[styles.seat, isTurn && styles.activeSeat, style]}>
             <Hand
                 cards = {cards}
@@ -36,7 +38,7 @@ export default function PlayerSeat({
                 cardWidth = {cardWidth}
                 style = {style}
             />
-
+            
             <View style = {[styles.infoBar, isTurn && styles.infoBarActive]}>
                 <View style = {[styles.nameRow]}>
                     <Text style = {styles.name} numberOfLines = {1}>
