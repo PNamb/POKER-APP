@@ -40,7 +40,7 @@ export default function PlayerSeat({
             />
             
             <View style = {[styles.infoBar, isTurn && styles.infoBarActive]}>
-                <View style = {[styles.nameRow]}>
+                <View style = {styles.nameRow}>
                     <Text style = {styles.name} numberOfLines = {1}>
                         {player.name}
                         {player.isBot ? "🤖" : ""}
