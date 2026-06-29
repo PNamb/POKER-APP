@@ -1,6 +1,7 @@
 import React from "react"
 import {View, Text, StyleSheet} from "react-native"
 import Svg, {Text as SvgText} from "react-native-svg"
+import { cardRank, cardSuit } from "../game/deck"
 
 const SUIT_SYMBOLS = {spades: "♠", hearts: "♥", dimaonds: "♦", clubs: "♣"}
 const RED_SUITS = ["hearts", "diamonds"]
@@ -16,22 +17,23 @@ const PIP_LAYOUTS = { //layouts for the suit symbols in each card
     7: [[25, 20], [75, 20], [25, 50], [75, 50], [25, 80], [75, 80], [50, 50]],
     8: [[25, 20], [75, 20], [25, 50], [75, 50], [25, 80], [75, 80], [50, 35], [50, 65]],
     9: [[25, 20], [75, 20], [25, 40], [75, 40], [25, 60], [75, 60], [25, 80], [75, 80], [50, 50]],
-    10: [[25, 20], [75, 20], [25, 40], [75, 40], [25, 60], [75, 60], [25, 80], [75, 80], [50, 35], [50, 65]]
+    "T": [[25, 20], [75, 20], [25, 40], [75, 40], [25, 60], [75, 60], [25, 80], [75, 80], [50, 35], [50, 65]]
 }
 
 const FACE_ART = {J: "🃏", Q: "♛", K: "🜲"} //placeholder face art
 const FACE_NAMES = {J: "Jack", Q: "Queen", K: "King"}
 
-export default function Card({rank, suit, faceUp = true, width = 80}) {
-    const rankStr = String(rank)
+export default function Card({card, rank, suit, faceUp = true, width = 80}) {
+    const rankStr = card !== undefined ? cardRank(card) : String(rank)
+    const suitStr = card !== undefined ? cardSuit(card) : suit
 
     const height = width / 0.69 //roughly 5:7 aspec ratio
 
-    const isRed = RED_SUITS.includes(suit)
+    const isRed = RED_SUITS.includes(suitStr)
     const isFace = FACE_RANKS.includes(rankStr)
     const isAce = rankStr === "A"
 
-    const symbol = SUIT_SYMBOLS[suit]
+    const symbol = SUIT_SYMBOLS[suitStr]
     const suitColor = isRed ? "#c0392b" : "#1a1a1a"
 
     if (!faceUp) { //if the card is face down
