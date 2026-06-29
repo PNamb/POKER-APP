@@ -1,13 +1,14 @@
-import React, { useCallback, useState } from 'react'
-import { View, Text, TouchableOpacity, Slider, StyleSheet } from 'react-native'
-import { getLegalActions } from '../game/game-engine'
+import React, { useCallback, useState } from "react"
+import { View, Text, TouchableOpacity, Slider, StyleSheet } from "react-native"
+import { getLegalActions } from "../game/game-engine"
+import Slider from "@react-native-community/slider"
 
 export default function ActionBar({
-    legalActions,
-    onFold,
-    onCheck,
-    onRaise,
-    onCall,
+    legalActions, //object gotten from getLegalActions - stores the action buttons that can be used, and the call amount and min raise
+    onFold, //fold function
+    onCheck, //check function
+    onRaise, //raise function
+    onCall, //call function
     maxRaise = 0,
     isTurn,
     style
@@ -15,9 +16,7 @@ export default function ActionBar({
     const [raiseAmount, setRaiseAmount] = useState(legalActions?.minRaiseAmount ?? 0)
     const {canCheck, canCall, canRaise, canFold, callAmount, minRaiseAmount} = legalActions ?? {}
 
-    if (!isTurn) {
-        //TODO -- dimm all action buttons if it isn't the user's turn
-    }
+    if (!isTurn) return null
 
     const renderFoldButton = () => {
         return (
@@ -55,17 +54,48 @@ export default function ActionBar({
         )
     }
 
+    const renderRaiseSlider = () => { //raise slider
+        if (!canRaise) return null
+        return (
+            <View>
+                <Text style = {styles.raiseLabel}>RAISE: {raiseAmount.toLocalString()}</Text>
+                <Slider
+                    minimumValue = {minRaiseAmount}
+                    maximumValue = {maxRaise}
+                    step = {1}
+                    value = {raiseAmount}
+                    onValueChange = {setRaiseAmount}
+                    minimumTrackTintColor = "#f0c040"
+                    maximumTrackTintColor = "#444"
+                    thumbTintColor = "#f0c040"
+                />
+            </View>
+        )
+    }
+
     const renderRaiseButton = () => {
         return (
             <TouchableOpacity
                 style = {[styles.button, styles.raiseButton, !canRaise && styles.dimmed]}
-                onPress = {onRaise}
+                onPress = {() => onRaise(raiseAmount)}
                 disabled = {!onRaise}
             >
                 <Text style = {styles.buttonText}>RAISE</Text>
             </TouchableOpacity>
         )
     }
+
+    return (
+        <View style = {[styles.container, style]}>
+            {renderRaiseSlider()}
+            <View style = {styles.buttonRow}>
+                {renderFoldButton()}
+                {renderCheckButton()}
+                {renderCallButton()}
+                {renderRaiseButton()}
+            </View>
+        </View>
+    )
 }
 
 
