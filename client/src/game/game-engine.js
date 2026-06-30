@@ -74,9 +74,9 @@ function resolveWalk(state) { //handles if all but one has folded; returns a sta
 function nextActiveIndex(players, fromIndex, steps = 1) { //finds the next player index going clockwise; returns an index
     let idx = fromIndex
     let found = 0
-    while (found < steps && !players[idx].allIn) {
+    while (found < steps) {
         idx = (idx + 1) % players.length
-        if (!players[idx].folded) found++
+        if (!players[idx].folded && !players[idx].allIn) found++
     }
     return idx
 }
@@ -148,6 +148,7 @@ export function createGame(playerNames, options = {}) { //set state default valu
     }
 }
 
+//TODO - FIX
 export function startHand(state) { //shuffle the deck, reset player bets and hole cards, deal hole cards, and post the blinds; returns a state
     let deck = shuffle(freshDeck())
 
@@ -167,7 +168,12 @@ export function startHand(state) { //shuffle the deck, reset player bets and hol
         remaining = dealt.remaining
     }
 
-    const smallBlindIndex = nextActiveIndex(players, state.dealerIndex) //index after the dealer
+    let newDealerIndex = (state.dealerIndex + 1) % players.length
+    while (players[newDealerIndex].chips === 0) {
+        newDealerIndex = (newDealerIndex + 1) % players.length
+    }
+
+    const smallBlindIndex = nextActiveIndex(players, newDealerIndex) //index after the dealer
     const bigBlindIndex = nextActiveIndex(players, smallBlindIndex) //index after the small blind
     const firstToAct = nextActiveIndex(players, bigBlindIndex) //index after the big blind
 
@@ -186,7 +192,7 @@ export function startHand(state) { //shuffle the deck, reset player bets and hol
         sidePots: [],
         currentBet: state.bigBlind,
         minRaise: state.bigBlind,
-        dealerIndex: state.dealerIndex,
+        dealerIndex: newDealerIndex,
         bigBlindIndex: bigBlindIndex,
         activeIndex: firstToAct,
         actionHistory: [],
@@ -220,6 +226,7 @@ export function advancePhase(state) { //deal community cards; returns a state
                 minRaise: state.bigBlind,
                 activeIndex: state.dealerIndex,
                 actionHistory: [],
+                actedThisRound: [],
                 bigBlindActed: false
             }
 
@@ -238,6 +245,7 @@ export function advancePhase(state) { //deal community cards; returns a state
                 minRaise: state.bigBlind,
                 activeIndex: state.dealerIndex,
                 actionHistory: [],
+                actedThisRound: [],
                 bigBlindActed: false
             }
 
@@ -256,6 +264,7 @@ export function advancePhase(state) { //deal community cards; returns a state
                 minRaise: state.bigBlind,
                 activeIndex: state.dealerIndex,
                 actionHistory: [],
+                actedThisRound: [],
                 bigBlindActed: false
             }
 
@@ -313,7 +322,7 @@ export function advanceAction(state) { //advances action to the next player; als
 
     const bigBlindPending = state.phase === "preflop" && !state.bigBlindActed && state.activeIndex === state.bigBlindIndex
 
-    const allActed = state.players.every((p, i) => p.folded || p.isAllIn || state.actedThisRound.includes(i))
+    const allActed = state.players.every((p, i) => p.folded || p.allIn || state.actedThisRound.includes(i))
 
     const bettingComplete = !bigBlindPending && activePlayers.every((p) => p.bet === state.currentBet) && allActed
 
@@ -375,7 +384,8 @@ export function call(state, playerIndex) { //calls the current bet for the given
 export function raise(state, playerIndex, amount) { //raises by the given amount for the given player; returns a state
     const player = state.players[playerIndex]
     const total = state.currentBet + amount
-    const actual = Math.min(player.chips, total)
+    const maxTotalBet = player.bet + player.chips
+    const actual = Math.min(maxTotalBet, total)
     const isAllIn = player.chips <= total
     const raiseBy = actual - player.bet
 

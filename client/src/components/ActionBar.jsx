@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react"
-import { View, Text, TouchableOpacity, Slider, StyleSheet } from "react-native"
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
 import { getLegalActions } from "../game/game-engine"
 import Slider from "@react-native-community/slider"
 
@@ -58,7 +58,7 @@ export default function ActionBar({
         if (!canRaise) return null
         return (
             <View>
-                <Text style = {styles.raiseLabel}>RAISE: {raiseAmount.toLocalString()}</Text>
+                <Text style = {styles.raiseLabel}>RAISE: {raiseAmount.toLocaleString()}</Text>
                 <Slider
                     minimumValue = {minRaiseAmount}
                     maximumValue = {maxRaise}

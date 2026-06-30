@@ -9,7 +9,7 @@ export default function PotDisplay({
     const renderPot = () => { //render main pot
         return (
             <View style = {styles.mainPot}>
-                <Text style = {styles.label}>{POT}</Text>
+                <Text style = {styles.label}>POT</Text>
                 <Text style = {styles.amount}>{mainPot.toLocaleString()}</Text>
             </View>
         )
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         borderRadius: 20,
         borderWidth: 0.5,
-        borderColor: #f0c040
+        borderColor: "#f0c040"
     },
     sidePot: {
         flexDirection: "row",

@@ -46,9 +46,14 @@ export default function PlayerSeat({
                         {player.isBot ? "🤖" : ""}
                         {isSelf ? "(you)" : ""}
                     </Text>
-                    {seatState === SEAT_STATES.ALL_IN && (
+                    {seatState === SEAT_STATES.FOLDED && (
                         <View style = {[styles.badge, styles.badgeFolded]}>
                             <Text style = {styles.badgeText}>FOLDED</Text>
+                        </View>
+                    )}
+                    {seatState === SEAT_STATES.ALL_IN && (
+                        <View style = {styles.badge}>
+                            <Text style = {styles.badgeText}>ALL IN</Text>
                         </View>
                     )}
                 </View>

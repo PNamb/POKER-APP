@@ -3,7 +3,7 @@ import {View, Text, StyleSheet} from "react-native"
 import Svg, {Text as SvgText} from "react-native-svg"
 import { cardRank, cardSuit } from "../game/deck"
 
-const SUIT_SYMBOLS = {spades: "♠", hearts: "♥", dimaonds: "♦", clubs: "♣"}
+const SUIT_SYMBOLS = {spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣"}
 const RED_SUITS = ["hearts", "diamonds"]
 const FACE_RANKS = ["J", "Q", "K"]
 
@@ -33,7 +33,7 @@ export default function Card({card, rank, suit, faceUp = true, width = 80}) {
     const isFace = FACE_RANKS.includes(rankStr)
     const isAce = rankStr === "A"
 
-    const symbol = SUIT_SYMBOLS[suitStr]
+    const sym = SUIT_SYMBOLS[suitStr]
     const suitColor = isRed ? "#c0392b" : "#1a1a1a"
 
     if (!faceUp) { //if the card is face down
@@ -64,7 +64,7 @@ export default function Card({card, rank, suit, faceUp = true, width = 80}) {
 
         //PIP layout; render the center pips for every other card
         const positions = PIP_LAYOUTS[rankStr] || []
-        const pipSize = rankStr === "10" ? 9 : 11
+        const pipSize = rankStr === "T" ? 9 : 11
         return (
             <Svg width = "100%" height = "100%" style = {styles.pipArea}>
                 {positions.map(([x, y], i) => (

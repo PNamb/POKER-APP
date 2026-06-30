@@ -1,6 +1,7 @@
 import React from "react"
 import {View, Text, StyleSheet} from "react-native"
 import Card from "./Card"
+import { cardRank, cardSuit } from "../game/deck"
 
 const STREET_LABELS = {
     0: "",
@@ -8,7 +9,7 @@ const STREET_LABELS = {
     4: "Turn",
     5: "River"
 }
-
+//TODO - FIX
 export default function CommunityCards({
     cards = [],
     cardWidth = 70,
@@ -19,8 +20,8 @@ export default function CommunityCards({
             <View style = {styles.row}>
                 {Array.from({length: 5}, (_, i) => {
                     const card = cards[i]
-                    return card ? <Card key = {i} rank = {card.rank} suit = {card.suit} faceUp = {true} width = {cardWidth} /> :
-                                <View key = {i} style = {[style.placeHolder, {width = cardWidth, height = cardWidth / 0.69}]} />
+                    return card !== undefined ? <Card key = {i} card = {card} faceUp = {true} width = {cardWidth} /> :
+                                <View key = {i} style = {[styles.placeHolder, {width: cardWidth, height: cardWidth / 0.69}]} />
                 })}
             </View>
         )
