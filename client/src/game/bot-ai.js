@@ -39,22 +39,6 @@ function estimateEquity(holeCards, communityCards, numOpps, deck) { //returns a 
     return (wins + ties * 0.5) / simulations //returns at least 0; at most 1
 }
 
-function getPotOdds(state, playerIndex) { //returns a number representing the pot odds of the bots hand (lower is better)
-    const player = state.players[playerIndex]
-    const callAmount = state.currentBet - player.bet
-    
-    return callAmount === 0 ? 0 : callAmount / (state.pot + callAmount)
-}
-
-function getRemaining(state) { //returns the remaining cards in the deck, after the hole cards and community cards are accounted for
-    const known = new Set([
-        ...state.communityCards,
-        ...state.players.filter(p => p.holeCards.length > 0).flatMap(p => p.holeCards)
-    ])
-
-    return freshDeck().filter(card => !known.has(card))
-}
-
 function decideAction(state, playerIndex) { //decides on what to do; returns an object of {type} or {type, amount} if the decides to raise
     const player = state.players[playerIndex]
 
@@ -62,9 +46,21 @@ function decideAction(state, playerIndex) { //decides on what to do; returns an 
 
     const numOpps = state.players.filter(p => !p.folded && !p.allIn && p !== player).length //number of other players (besides the bot)
 
-    const remainingDeck = getRemaining(state)
+    const remainingDeck = (state) => { //returns the remaining cards in the deck, after the hole cards and community cards are accounted for
+        const known = new Set([
+            ...state.communityCards,
+            ...state.players.filter(p => p.holeCards.length > 0).flatMap(p => p.holeCards)
+        ])
+
+        return freshDeck().filter(card => !known.has(card))
+    }
     const equity = estimateEquity(player.holeCards, state.communityCards, numOpps, remainingDeck)
-    const potOdds = getPotOdds(state, playerIndex)
+    const potOdds = (state, playerIndex) => { //returns a number representing the pot odds of the bots hand (lower is better)
+        const player = state.players[playerIndex]
+        const callAmount = state.currentBet - player.bet
+    
+        return callAmount === 0 ? 0 : callAmount / (state.pot + callAmount)
+    }
 
     const RAISE_THRESHOLD = 0.65 //minumum equity threshold to raise
     const CALL_THRESHOLD = 0.40 //minumum equity threshold to call

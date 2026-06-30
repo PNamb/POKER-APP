@@ -1,21 +1,21 @@
 import React from "react"
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
-import { useNavigation } from "@react-navigation/native"
+import { useRouter } from "expo-router"
 import { Colors, Spacing, Typography, Radius } from "@/constants/theme"
 
 export default function HomeScreen() {
-    const navigation = useNavigation() //use to navigate to other screens
+    const router = useRouter() //use to navigate to other screens
 
     const handleHost = () => {
-        navigation.navigate("Lobby", {isHost: true})
+        router.push({pathname: "/lobby", params: {isHost: true}})
     }
 
     const handleJoin = () => {
-        navigation.navigate("Join")
+        router.push("/join")
     }
 
     const handleBotGame = () => {
-        navigation.navigate("Game", {mode: "bot"})
+        router.push({pathname: "/game", params: {mode: "bot"}})
     }
 
     return (

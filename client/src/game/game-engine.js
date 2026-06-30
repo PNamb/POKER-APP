@@ -148,7 +148,6 @@ export function createGame(playerNames, options = {}) { //set state default valu
     }
 }
 
-//TODO - FIX
 export function startHand(state) { //shuffle the deck, reset player bets and hole cards, deal hole cards, and post the blinds; returns a state
     let deck = shuffle(freshDeck())
 
