@@ -1,55 +1,71 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-import '@/global.css';
-
-import { Platform } from 'react-native';
 
 export const Colors = {
-  light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+  background: {
+    table: "#1e1e1e", //main; ActionBar, pot, infoBar
+    cardFace: "#f8f8f6", //card front
+    cardBack: "#1a4a8a", //card back
+    cardBackPattern: "#0d3266" //inner patter on card back
   },
-  dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+  action: {
+    fold: "#2a1a1a",
+    call: "#2b3b2b",
+    check: "#323266",
+    raise: "#e2cb17",
+    badgeFolded: "#444444",
+    badgeAllIn: "#c0392b"
   },
+  border: {
+    subtle: "#333333", //infoBar, ActionBar top
+    medium: "#444444", //slider track, dashed placeholders
+    muted: "#555555", //side pot
+    card: "#cccccc", //card outline
+    gold: "#f0c040", //active accent (pot, active seat, raise)
+    danger: "#c0392b", //fold button or all-in badge
+    success: "#27ae60", //call button
+    info: "#2980b9" //check button
+  },
+  text: {
+    primary: "#ffffff",
+    secondary: "#aaaaaa", //chip count
+    muted: "#666666", //empty seat label
+    gold: "#f0c040", //raise label (bet amount)
+    streetLabel: "#550000" //street label ("Flop", "Turn", etc)
+  },
+  suit: {
+    red: "#c0392b",
+    black: "#1a1a1a"
+  },
+  slider: {
+    fill: "#f0c040",
+    track: "#444444",
+    thumb: "#f0c040"
+  }
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
-
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
+export const Typography = {
+  size: {
+    faceName: 8, //label on face cards
+    badge: 9, //"FOLDED" and "ALL IN"  badge text
+    cornerSuit: 11, //suit symbol in card corners
+    pipTen: 9, //pip size for 10
+    pip: 11, //pip size for cards other than 10
+    label: 12, //chip amount, raise label
+    body: 13, //player name, pot amount, button text
+    button: 14, //Action bar buttons
+    faceArt: 20, //center face art for face cards
+    aceSym: 28 //suit symbol for Ace
   },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
+  weight: {
+    normal: "500" as const,
+    semiBold: "600" as const,
+    bold: "700" as const,
+    extraBold: "800" as const
   },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
+  lineHeight: {
+    cornerRank: 15,
+    cornerSuit: 13
+  }
+} as const;
 
 export const Spacing = {
   half: 2,
@@ -61,5 +77,38 @@ export const Spacing = {
   six: 64,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+export const Radius = {
+  badge: 4, //folded and all-in badge
+  cardPattern: 6, //inner card-back pattern
+  card: 8, //card, button, and info bar
+  seat: 10, //empty seat outline
+  pill: 20 //pot display
+} as const;
+
+export const Shadows = {
+  card: {
+    shadowColor: "#000000",
+    shadowOffset: {width: 1, height: 2},
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3
+  },
+  activeSeat: {
+    shadowColor: "#f0c040",
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.9,
+    shadowRadius: 12,
+    elevation: 8
+  }
+} as const;
+
+export const Card = {
+  aspectRatio: 0.69,
+  defaultWidth: 80
+} as const;
+
+export const Opacity = {
+  dimmed: 0.3, //disabled action buttons
+  placeholder: 0.4, //placeholder community cards
+  cardBackPattern: 0.8
+} as const;
