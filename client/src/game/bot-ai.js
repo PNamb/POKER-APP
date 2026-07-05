@@ -54,7 +54,7 @@ function decideAction(state, playerIndex) { //decides on what to do; returns an 
 
         return freshDeck().filter(card => !known.has(card))
     }
-    const equity = estimateEquity(player.holeCards, state.communityCards, numOpps, remainingDeck)
+    const equity = estimateEquity(player.holeCards, state.communityCards, numOpps, remainingDeck(state))
     const potOdds = (state, playerIndex) => { //returns a number representing the pot odds of the bots hand (lower is better)
         const player = state.players[playerIndex]
         const callAmount = state.currentBet - player.bet
@@ -77,7 +77,7 @@ function decideAction(state, playerIndex) { //decides on what to do; returns an 
 
         return {type: "raise", amount: raiseAmount}
     }
-    if (equity >= CALL_THRESHOLD || potOdds < equity) { //call if equity >= threshold or equity > pot odds
+    if (equity >= CALL_THRESHOLD || potOdds(state, playerIndex) < equity) { //call if equity >= threshold or equity > pot odds
         if (canCall) {
             return {type: "call"}
         }
