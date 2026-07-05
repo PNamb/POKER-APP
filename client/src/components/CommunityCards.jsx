@@ -1,7 +1,6 @@
 import React from "react"
 import {View, Text, StyleSheet} from "react-native"
 import Card from "./Card"
-import { cardRank, cardSuit } from "../game/deck"
 
 const STREET_LABELS = {
     0: "",
@@ -9,7 +8,7 @@ const STREET_LABELS = {
     4: "Turn",
     5: "River"
 }
-//TODO - FIX
+
 export default function CommunityCards({
     cards = [],
     cardWidth = 70,
@@ -54,7 +53,6 @@ const styles = StyleSheet.create({
         fontWeight: "600"
     },
     placeHolder: {
-        borderRadius: 1,
         borderColor: "#444",
         borderStyle: "dashed",
         borderRadius: 8,

@@ -76,7 +76,7 @@ function nextActiveIndex(players, fromIndex, steps = 1) { //finds the next playe
     let found = 0
     while (found < steps) {
         idx = (idx + 1) % players.length
-        if (!players[idx].folded && !players[idx].allIn) found++
+        if (!players[idx].folded && !players[idx].allIn && players[idx].chips > 0) found++
     }
     return idx
 }
@@ -162,6 +162,7 @@ export function startHand(state) { //shuffle the deck, reset player bets and hol
 
     let remaining = deck
     for (let i = 0; i < players.length; i++) {
+        if (players[i].chips === 0) continue
         const dealt = deal(remaining, 2)
         players[i] = {...players[i], holeCards: dealt.cards}
         remaining = dealt.remaining
@@ -210,7 +211,6 @@ export function advancePhase(state) { //deal community cards; returns a state
 
     switch (nextPhase) {
         case "preflop":
-
             return(startHand(state))
 
         case "flop": {
@@ -312,6 +312,8 @@ export function advancePhase(state) { //deal community cards; returns a state
             }
         
         }
+        default:
+            throw new Error(`advancePhase: no handler for phase "${nextPhase}"`)
     }
     
 }
@@ -341,6 +343,7 @@ export function fold(state, playerIndex) { //folds the given player and checks i
     const newState = {
         ...state,
         players,
+        sidepots: players.some(p => p.allIn) ? calculateSidePots(players) : state.sidePots,
         lastAction: action,
         actionHistory: [...state.actionHistory, action],
         actedThisRound: [...state.actedThisRound, playerIndex]
@@ -372,7 +375,7 @@ export function call(state, playerIndex) { //calls the current bet for the given
         ...state,
         players,
         pot: state.pot + actual,
-        sidePots: isAllIn ? calculateSidePots(players) : state.sidePots,
+        sidePots: players.some(p => p.allIn) ? calculateSidePots(players) : state.sidePots,
         actionHistory: [...state.actionHistory, action],
         actedThisRound: [...state.actedThisRound, playerIndex],
         lastAction: action
@@ -385,7 +388,7 @@ export function raise(state, playerIndex, amount) { //raises by the given amount
     const total = state.currentBet + amount
     const maxTotalBet = player.bet + player.chips
     const actual = Math.min(maxTotalBet, total)
-    const isAllIn = player.chips <= total
+    const isAllIn = actual >= maxTotalBet
     const raiseBy = actual - player.bet
 
     const players = state.players.map((p, i) => i === playerIndex ? {
@@ -402,7 +405,7 @@ export function raise(state, playerIndex, amount) { //raises by the given amount
         ...state,
         players,
         pot: state.pot + raiseBy,
-        sidePots: isAllIn ? calculateSidePots(players) : state.sidePots,
+        sidePots: players.some(p => p.allIn) ? calculateSidePots(players) : state.sidePots,
         currentBet: isAllIn ? Math.max(state.currentBet, actual) : total,
         minRaise: isAllIn ? state.minRaise : amount,
         bigBlindActed: state.phase === "preflop" ? true : state.bigBlindActed,
@@ -446,7 +449,7 @@ export function getLegalActions(state, playerIndex) { //returns the actions poss
     const player = state.players[playerIndex]
 
     const canCheck = state.currentBet === player.bet
-    const canCall = state.currentBet !== player.bet && (state.currentBet - player.bet) <= player.chips
+    const canCall = state.currentBet !== player.bet && player.chips > 0
     const canRaise = (state.currentBet - player.bet) + state.minRaise <= player.chips
     const canFold = !player.folded && !player.allIn
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
 import { getLegalActions } from "../game/game-engine"
 import Slider from "@react-native-community/slider"
@@ -16,6 +16,10 @@ export default function ActionBar({
     const [raiseAmount, setRaiseAmount] = useState(legalActions?.minRaiseAmount ?? 0)
     const {canCheck, canCall, canRaise, canFold, callAmount, minRaiseAmount} = legalActions ?? {}
 
+    useEffect(() => {
+        setRaiseAmount(minRaiseAmount ?? 0)
+    }, [minRaiseAmount, isTurn])
+
     if (!isTurn) return null
 
     const renderFoldButton = () => {
@@ -23,7 +27,7 @@ export default function ActionBar({
             <TouchableOpacity
                 style = {[styles.button, styles.foldButton, !canFold && styles.dimmed]}
                 onPress = {onFold}
-                disabled = {!onFold}
+                disabled = {!canFold}
             >
                 <Text style = {styles.buttonText}>FOLD</Text>    
             </TouchableOpacity>
@@ -35,7 +39,7 @@ export default function ActionBar({
             <TouchableOpacity
                 style = {[styles.button, styles.checkButton, !canCheck && styles.dimmed]}
                 onPress = {onCheck}
-                disabled = {!onCheck}
+                disabled = {!canCheck}
             >
                 <Text style = {styles.buttonText}>CHECK</Text>
             </TouchableOpacity>
@@ -47,9 +51,9 @@ export default function ActionBar({
             <TouchableOpacity
                 style = {[styles.button, styles.callButton, !canCall && styles.dimmed]}
                 onPress = {onCall}
-                disabled = {!onCall}
+                disabled = {!canCall}
             >
-                <Text style = {styles.buttonText}>CALL {callAmount}</Text>
+                <Text style = {styles.buttonText}>CALL {Math.min(callAmount, player.chips)}</Text>
             </TouchableOpacity>
         )
     }
@@ -78,7 +82,7 @@ export default function ActionBar({
             <TouchableOpacity
                 style = {[styles.button, styles.raiseButton, !canRaise && styles.dimmed]}
                 onPress = {() => onRaise(raiseAmount)}
-                disabled = {!onRaise}
+                disabled = {!canRaise}
             >
                 <Text style = {styles.buttonText}>RAISE</Text>
             </TouchableOpacity>

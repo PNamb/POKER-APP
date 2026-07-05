@@ -36,7 +36,7 @@ export default function PlayerSeat({
                 cards = {cards}
                 faceUp = {faceUp}
                 cardWidth = {cardWidth}
-                style = {style}
+                style = {[style, dimmed && styles.dimmed]}
             />
             
             <View style = {[styles.infoBar, isTurn && styles.infoBarActive]}>

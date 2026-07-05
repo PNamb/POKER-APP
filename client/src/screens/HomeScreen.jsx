@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     title: {
         color: Colors.text.gold,
         fontSize: 32,
-        fontweight: Typography.weight.semiBold,
+        fontWeight: Typography.weight.semiBold,
         letterSpacing: 2
     },
     subTitle: {

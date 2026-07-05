@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from "react-native"
-import { useRouter, useLocalSearchParams, Color } from "expo-router"
+import { useRouter, useLocalSearchParams } from "expo-router"
 import { Colors, Spacing, Typography, Radius } from "@/constants/theme"
 
 const ROOM_CODE_LENGTH = 6
@@ -9,7 +9,7 @@ const CODE_CHARACTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 function generateRoomCode() { //generates random 6-character code
     let code = ""
     for (let i = 0; i < ROOM_CODE_LENGTH; i++) {
-        code += CODE_CHARACTERS[Math.floor(Math.random() * CODE_CHARACTERS)]
+        code += CODE_CHARACTERS[Math.floor(Math.random() * CODE_CHARACTERS.length)]
     }
     return code
 }

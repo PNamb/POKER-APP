@@ -44,7 +44,7 @@ function decideAction(state, playerIndex) { //decides on what to do; returns an 
 
     const {canCheck, canCall, canRaise, canFold, callAmount, minRaiseAmount} = getLegalActions(state, playerIndex) //possible actions for the bot
 
-    const numOpps = state.players.filter(p => !p.folded && !p.allIn && p !== player).length //number of other players (besides the bot)
+    const numOpps = state.players.filter(p => !p.folded && p !== player).length //number of other players (besides the bot)
 
     const remainingDeck = (state) => { //returns the remaining cards in the deck, after the hole cards and community cards are accounted for
         const known = new Set([

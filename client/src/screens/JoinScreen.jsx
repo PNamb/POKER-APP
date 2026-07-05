@@ -1,4 +1,4 @@
-import { React, useState } from "react"
+import React, { useState } from "react"
 import { View, Text, TouchableOpacity, StyleSheet, TextInput } from "react-native"
 import { useRouter } from "expo-router"
 import { Colors, Spacing, Typography, Radius } from "@/constants/theme"
@@ -13,7 +13,7 @@ export default function JoinScreen() {
     const [connecting, setConnecting] = useState(false)
 
     const handleChange = (text) => { //for entering a code
-        const cleaned = text.toUpperCase().replace("/[^A-Z0-9]/g", "")
+        const cleaned = text.toUpperCase().replace(/[^A-Z0-9]/g, "")
         setCode(cleaned)
         if (error) setError(null)
     }
@@ -66,7 +66,7 @@ export default function JoinScreen() {
                     onPress = {handleJoin}
                     disabled = {!canSubmit}
                 >
-                    <Text style = {styles.joinButtonText}>{connecting ? "CONNECTING..." : JOIN}</Text>
+                    <Text style = {styles.joinButtonText}>{connecting ? "CONNECTING..." : "JOIN"}</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -128,12 +128,12 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         backgroundColor: Colors.action.raise,
         borderWidth: 0.5,
-        borderColor: Color.border.gold,
+        borderColor: Colors.border.gold,
         marginTop: Spacing.md
     },
     joinButtonText: {
         fontSize: Typography.size.button,
-        fontweight: Typography.weight.normal,
+        fontWeight: Typography.weight.normal,
         color: Colors.text.primary
     },
     dimmed: {
