@@ -1,6 +1,7 @@
 import { deal, freshDeck, shuffle } from "./deck"
 import { PHASES, state } from "./game-state"
 import { rankHands } from "./hand-evaluator"
+import * as Crypto from "expo-crypto"
 
 function calculateSidePots(players) { //returns all side pots and their eligible players ([{amount, players}, {amount, players}, etc])
     const activePlayers = players.filter((p) => p.totalBet > 0)
@@ -95,6 +96,23 @@ function postBlind(player, amount) { //posts the blind for the given player; ret
     }
 }
 
+function runOut(state) {
+    let current = {...state, players: state.players.map((p) => ({...p, bet: 0}))}
+
+    while (current.phase !== "river") {
+        const nextPhase = PHASES[PHASES.indexOf(current.phase) + 1]
+
+        if (nextPhase === "flop") {
+            const dealt = deal(current.deck, 3)
+            current = {...current, deck: dealt.remaining, communityCards: dealt.cards, phase: "flop"}
+        } else {
+            const dealt = deal(current.deck, 1)
+            current = {...current, deck: dealt.remaining, communityCards: [...current.communityCards, ...dealt.cards], phase: nextPhase}
+        }
+    }
+    return advancePhase(current)
+}
+
 export function createBotGame(playerName, numBots, options = {}) {
     const botNames = Array.from({length: numBots}, (_, i) => `Bot ${i + 1}`)
 
@@ -135,7 +153,7 @@ export function createGame(playerNames, options = {}) { //set state default valu
         actedThisRound: [],
         bigBlindActed: false,
         players: playerNames.map(name => ({
-            id: crypto.randomUUID(),
+            id: Crypto.randomUUID(),
             name,
             chips: startingChips,
             bet: 0,
@@ -208,6 +226,7 @@ export function startHand(state) { //shuffle the deck, reset player bets and hol
 }
 
 export function advancePhase(state) { //deal community cards; returns a state
+    if (state.phase === "showdown") return state
     const currentPhase = state.phase
     const nextPhase = PHASES[(PHASES.indexOf(currentPhase) + 1) % PHASES.length]
     const players = state.players.map((p) => ({...p, bet: 0}))
@@ -221,6 +240,7 @@ export function advancePhase(state) { //deal community cards; returns a state
 
             const newState = {
                 ...state,
+                phase: "flop",
                 deck: dealt.remaining,
                 communityCards: dealt.cards,
                 players,
@@ -240,6 +260,7 @@ export function advancePhase(state) { //deal community cards; returns a state
 
             const newState = {
                 ...state,
+                phase: "turn",
                 deck: dealt.remaining,
                 communityCards: [...state.communityCards, ...dealt.cards],
                 players,
@@ -259,6 +280,7 @@ export function advancePhase(state) { //deal community cards; returns a state
 
             const newState = {
                 ...state,
+                phase: "river",
                 deck: dealt.remaining,
                 communityCards: [...state.communityCards, ...dealt.cards],
                 players,
@@ -323,11 +345,14 @@ export function advancePhase(state) { //deal community cards; returns a state
 
 export function advanceAction(state) { //advances action to the next player; also checks if betting is complete and advances phase if so; returns a state
     const activePlayers = state.players.filter((p) => !p.folded && !p.allIn)
+    const contestants = state.players.filter((p) => !p.folded)
+
+    if (activePlayers.length <= 1 && contestants.length > 1 && state.phase !== "showdown") {
+        return runOut(state)
+    }
 
     const bigBlindPending = state.phase === "preflop" && !state.bigBlindActed && state.activeIndex === state.bigBlindIndex
-
     const allActed = state.players.every((p, i) => p.folded || p.allIn || state.actedThisRound.includes(i))
-
     const bettingComplete = !bigBlindPending && activePlayers.every((p) => p.bet === state.currentBet) && allActed
 
     if (bettingComplete) return advancePhase(state)

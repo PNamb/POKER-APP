@@ -52,7 +52,7 @@ export default function ActionBar({
                 onPress = {onCall}
                 disabled = {!canCall}
             >
-                <Text style = {styles.buttonText}>CALL {Math.min(callAmount, maxRaise)}</Text>
+                <Text style = {styles.buttonText}>CALL</Text>
             </TouchableOpacity>
         )
     }

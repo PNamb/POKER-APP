@@ -18,6 +18,11 @@ export default function HomeScreen() {
         router.push({pathname: "/game", params: {mode: "bot"}})
     }
 
+    //TEMP DEV ONLY
+    const handleUITest = () => {
+        router.push("/ui_test")
+    }
+
     return (
         <View style = {styles.container}>
             <View style = {styles.titleBlock}>
@@ -41,6 +46,11 @@ export default function HomeScreen() {
                 <TouchableOpacity style = {styles.botButton} onPress = {handleBotGame}>
                     <Text style = {styles.botButtonText}>Play V.S. Bots</Text>
                 </TouchableOpacity>
+
+                <TouchableOpacity style={styles.devButton} onPress={handleUITest}>
+                    <Text style={styles.devButtonText}>🛠 UI Test Harness</Text>
+                </TouchableOpacity>
+
             </View>
         </View>
     )
@@ -99,6 +109,18 @@ const styles = StyleSheet.create({
         paddingVertical: Spacing.xs
     },
     botButtonText: {
+        fontSize: Typography.size.label,
+        color: Colors.text.muted
+    },
+    devButton: {
+        marginTop: Spacing.xs,
+        paddingVertical: Spacing.xs,
+        paddingHorizontal: Spacing.md,
+        borderWidth: 0.5,
+        borderColor: Colors.border.medium,
+        borderRadius: Radius.card
+    },
+    devButtonText: {
         fontSize: Typography.size.label,
         color: Colors.text.muted
     }
