@@ -55,6 +55,7 @@ const styles = StyleSheet.create({
     placeHolder: {
         borderColor: "#444",
         borderStyle: "dashed",
+        borderWidth: 1,
         borderRadius: 8,
         opacity: 0.4
     }

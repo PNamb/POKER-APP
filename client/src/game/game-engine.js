@@ -37,21 +37,24 @@ function validate(state, playerIndex, action) { //validates that the action can 
         throw new Error(`It is not Player ${playerIndex}'s turn`)
     }
     if (state.phase === "waiting" || state.phase === "showdown") {
-        throw new Error(`Player ${playerIndex} cannot act during ${state.phase} phase`)
+        throw new Error(`Player ${playerIndex} can't act during ${state.phase} phase`)
     }
     if (action.type === "check") {
         if (state.currentBet !== player.bet) {
-            throw new Error(`Player ${playerIndex} cannot check; must call ${state.currentBet} or raise`)
+            throw new Error(`Player ${playerIndex} can't check; must call ${state.currentBet} or raise`)
         }
     }
     if (action.type === "call") {
         if (state.currentBet === player.bet) {
-            throw new Error(`Player ${playerIndex} cannot call; no bet to call`)
+            throw new Error(`Player ${playerIndex} can't call; no bet to call`)
         }
     }
     if (action.type === "raise") {
-        if (action.amount > player.chips) {
-            throw new Error(`Player ${playerIndex} cannot raise ${action.amount}; not enough chips`)
+        if (action.amount <= 0) {
+            throw new Error(`Player ${playerIndex} can't raise by less than 1 chip`)
+        }
+        if (player.chips <= 0) {
+            throw new Error(`Player ${playerIndex} can't raise with no chips`)
         }
     }
 }

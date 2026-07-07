@@ -39,7 +39,7 @@ export default function HomeScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity style = {styles.botButton} onPress = {handleBotGame}>
-                    <Text style = {styles.buttonText}>Play V.S. Bots</Text>
+                    <Text style = {styles.botButtonText}>Play V.S. Bots</Text>
                 </TouchableOpacity>
             </View>
         </View>

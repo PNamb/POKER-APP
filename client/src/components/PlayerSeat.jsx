@@ -36,7 +36,7 @@ export default function PlayerSeat({
                 cards = {cards}
                 faceUp = {faceUp}
                 cardWidth = {cardWidth}
-                style = {[style, dimmed && styles.dimmed]}
+                style = {[dimmed && styles.dimmed]}
             />
             
             <View style = {[styles.infoBar, isTurn && styles.infoBarActive]}>
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     badgeText: {
         color: "#fff",
         fontSize: 9,
-        fontWeight: 500
+        fontWeight: "500"
     },
     dimmed: {
         opacity: 0.4

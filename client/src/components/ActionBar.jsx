@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react"
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
-import { getLegalActions } from "../game/game-engine"
 import Slider from "@react-native-community/slider"
 
 export default function ActionBar({
@@ -53,7 +52,7 @@ export default function ActionBar({
                 onPress = {onCall}
                 disabled = {!canCall}
             >
-                <Text style = {styles.buttonText}>CALL {Math.min(callAmount, player.chips)}</Text>
+                <Text style = {styles.buttonText}>CALL {Math.min(callAmount, maxRaise)}</Text>
             </TouchableOpacity>
         )
     }

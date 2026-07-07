@@ -63,11 +63,11 @@ const styles = StyleSheet.create({
     label: {
         color: "#ffffff",
         fontSize: 13,
-        fontWeight: 500
+        fontWeight: "500"
     },
     amount: {
         color: "#ffffff",
         fontSize: 13,
-        fontWeight: 500
+        fontWeight: "500"
     }
 })

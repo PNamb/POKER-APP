@@ -182,7 +182,6 @@ const styles = StyleSheet.create({
         fontSize: Typography.size.label
     },
     playerRow: {
-        color: Colors.background.table,
         borderWidth: 0.5,
         borderColor: Colors.border.subtle,
         borderRadius: Radius.card,
