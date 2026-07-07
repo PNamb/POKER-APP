@@ -17,6 +17,7 @@ export default function PlayerSeat({
     isSelf,
     seatState = SEAT_STATES.WAITING,
     cardWidth = 60,
+    revealCards = false,
     style
 }) {
     if (seatState === SEAT_STATES.EMPTY) { //render empty seat and skip everything else
@@ -27,7 +28,7 @@ export default function PlayerSeat({
         )
     }
     
-    const faceUp = isSelf || seatState === SEAT_STATES.FOLDED //show cards if the player has folded
+    const faceUp = isSelf || revealCards
     const dimmed = seatState === SEAT_STATES.FOLDED //dimm cards if the player has folded
 
     return ( //render hand (cards), then info-bar, then chips

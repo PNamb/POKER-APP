@@ -73,9 +73,10 @@ export default function Card({card, rank, suit, faceUp = true, width = 80}) {
                     x = {`${x}%`}
                     y = {`${y}%`}
                     textAnchor= "middle"
+                    alignmentBaseline = "middle"
                     fontSize = {pipSize}
                     fill = {suitColor}
-                    > {sym}</SvgText>
+                    >{sym}</SvgText>
                 ))}
             </Svg>
         )

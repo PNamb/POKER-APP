@@ -55,6 +55,7 @@ export default function GameScreen() {
         const playerIndex = state.players.indexOf(player)
         const isTurn = state.activeIndex === playerIndex
         const isShowdown = state.phase === "showdown"
+        const revealCards = isShowdown && !player.folded
 
         return (
             <PlayerSeat
@@ -65,6 +66,7 @@ export default function GameScreen() {
                 isSelf = {false}
                 seatState = {seatStateFor(player)}
                 cardWidth = {50}
+                revealCards = {revealCards}
                 style = {styles.opponentSeat}
             />
         )

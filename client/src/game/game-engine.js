@@ -51,11 +51,11 @@ function validate(state, playerIndex, action) { //validates that the action can 
         }
     }
     if (action.type === "raise") {
-        if (action.amount <= 0) {
-            throw new Error(`Player ${playerIndex} can't raise by less than 1 chip`)
-        }
-        if (player.chips <= 0) {
-            throw new Error(`Player ${playerIndex} can't raise with no chips`)
+        const requiredTotal = state.currentBet + state.minRaise;
+        const playerTotalPotential = player.bet + player.chips;
+        
+        if (action.amount < state.minRaise && playerTotalPotential >= requiredTotal) {
+            throw new Error(`Player ${playerIndex} must raise by at least ${state.minRaise}`);
         }
     }
 }
@@ -96,7 +96,7 @@ function postBlind(player, amount) { //posts the blind for the given player; ret
     }
 }
 
-function runOut(state) {
+function runOut(state) { //resolves a state where everyone has gone all-in or folded
     let current = {...state, players: state.players.map((p) => ({...p, bet: 0}))}
 
     while (current.phase !== "river") {
@@ -113,7 +113,7 @@ function runOut(state) {
     return advancePhase(current)
 }
 
-export function createBotGame(playerName, numBots, options = {}) {
+export function createBotGame(playerName, numBots, options = {}) { //creates a bot game (no networking)
     const botNames = Array.from({length: numBots}, (_, i) => `Bot ${i + 1}`)
 
     const game = createGame([playerName, ...botNames], options)
@@ -170,6 +170,11 @@ export function createGame(playerNames, options = {}) { //set state default valu
 }
 
 export function startHand(state) { //shuffle the deck, reset player bets and hole cards, deal hole cards, and post the blinds; returns a state
+    const activePlayers = state.players.filter((p) => p.chips > 0)
+    if (activePlayers < 2) {
+        throw new Error("Game Over: Not enough players with chips to start a hand.")
+    }
+
     let deck = shuffle(freshDeck())
 
     const players = state.players.map(p => ({
@@ -190,12 +195,23 @@ export function startHand(state) { //shuffle the deck, reset player bets and hol
     }
 
     let newDealerIndex = (state.dealerIndex + 1) % players.length
-    while (players[newDealerIndex].chips === 0) {
+    let attempts = 0
+    while (players[newDealerIndex].chips === 0 && attempts < players.length) {
         newDealerIndex = (newDealerIndex + 1) % players.length
+        attempts++
     }
 
-    const smallBlindIndex = nextActiveIndex(players, newDealerIndex) //index after the dealer
-    const bigBlindIndex = nextActiveIndex(players, smallBlindIndex) //index after the small blind
+    const activePlayerCount = players.filter((p) => p.chips > 0).length
+    let smallBlindIndex, bigBlindIndex
+
+    if (activePlayerCount === 2) {
+        smallBlindIndex = newDealerIndex
+        bigBlindIndex = nextActiveIndex(players, smallBlindIndex)
+    } else {
+        smallBlindIndex = nextActiveIndex(players, newDealerIndex) 
+        bigBlindIndex = nextActiveIndex(players, smallBlindIndex) 
+    }
+
     const firstToAct = nextActiveIndex(players, bigBlindIndex) //index after the big blind
 
     players[smallBlindIndex] = postBlind(players[smallBlindIndex], state.smallBlind)
@@ -371,7 +387,7 @@ export function fold(state, playerIndex) { //folds the given player and checks i
     const newState = {
         ...state,
         players,
-        sidepots: players.some(p => p.allIn) ? calculateSidePots(players) : state.sidePots,
+        sidePots: players.some(p => p.allIn) ? calculateSidePots(players) : state.sidePots,
         lastAction: action,
         actionHistory: [...state.actionHistory, action],
         actedThisRound: [...state.actedThisRound, playerIndex]
