@@ -8,6 +8,7 @@ import PlayerSeat from "../components/PlayerSeat"
 import Hand from "../components/Hand"
 import ActionBar from "../components/ActionBar"
 import { Colors, Radius, Spacing, Typography } from "../constants/theme"
+import { nextActiveIndex } from "@/game/game-engine"
 
 export default function GameScreen() {
     const router = useRouter()
@@ -44,6 +45,9 @@ export default function GameScreen() {
 
     const localPlayer = state.players[localPlayerIndex]
     const opponents = state.players.filter((_, i) => i !== localPlayerIndex)
+    const bettingPhase = state.phase !== "waiting" && state.phase !== "showdown"
+
+    const firstToActIndex = bettingPhase ? (state.phase === "preflop" ? nextActiveIndex(state.players, state.bigBlindIndex) : nextActiveIndex(state.players, state.dealerIndex)) : null
 
     const seatStateFor = (player) => { //seat state for a given player
         if (player.folded) return "folded"
@@ -64,6 +68,7 @@ export default function GameScreen() {
                 cards = {player.holeCards}
                 isTurn = {isTurn}
                 isSelf = {false}
+                isFirstToAct = {playerIndex === firstToActIndex}
                 seatState = {seatStateFor(player)}
                 cardWidth = {50}
                 revealCards = {revealCards}
@@ -106,6 +111,7 @@ export default function GameScreen() {
                     cards = {[]}
                     isTurn = {state.activeIndex === localPlayerIndex}
                     isSelf = {true}
+                    isFirstToAct = {localPlayerIndex === firstToActIndex}
                     seatState = {seatStateFor(localPlayer)}
                     style = {styles.localSeatInfo}
                 />

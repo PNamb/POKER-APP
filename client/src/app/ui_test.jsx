@@ -77,16 +77,44 @@ export default function DevUITestScreen() {
                 <CommunityCards cards={[]} />
             </Section>
 
-            <Section title="CommunityCards — flop">
-                <CommunityCards cards={[3, 17, 28]} />
+            <Section title="CommunityCards — 1">
+                <CommunityCards cards={[1, 2, 3, 4, 5]} />
             </Section>
 
-            <Section title="CommunityCards — turn">
-                <CommunityCards cards={[3, 17, 28, 41]} />
+            <Section title="CommunityCards — 2">
+                <CommunityCards cards={[6, 7, 8, 9, 10]} />
             </Section>
 
-            <Section title="CommunityCards — river">
-                <CommunityCards cards={[3, 17, 28, 41, 5]} />
+            <Section title="CommunityCards — 3">
+                <CommunityCards cards={[11, 12, 13, 14, 15]} />
+            </Section>
+
+            <Section title="CommunityCards — 4">
+                <CommunityCards cards={[16, 17, 18, 19, 20]} />
+            </Section>
+
+            <Section title="CommunityCards — 5">
+                <CommunityCards cards={[21, 22, 23, 24, 25]} />
+            </Section>
+
+            <Section title="CommunityCards — 6">
+                <CommunityCards cards={[26, 27, 28, 29, 30]} />
+            </Section>
+
+            <Section title="CommunityCards — 7">
+                <CommunityCards cards={[31, 32, 33, 34, 35]} />
+            </Section>
+
+            <Section title="CommunityCards — 8">
+                <CommunityCards cards={[36, 37, 38, 39, 40]} />
+            </Section>
+
+            <Section title="CommunityCards — 9">
+                <CommunityCards cards={[42, 43, 44, 45, 46]} />
+            </Section>
+
+            <Section title="CommunityCards — 10">
+                <CommunityCards cards={[47, 48, 49, 50, 51]} />
             </Section>
 
             <Section title="PotDisplay — main pot only">
@@ -106,7 +134,17 @@ export default function DevUITestScreen() {
             <Section title="PlayerSeat — active, self, is turn">
                 <PlayerSeat
                     player={mockPlayerActive}
-                    cards={[10, 11]}
+                    cards={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]}
+                    isTurn={true}
+                    isSelf={true}
+                    seatState="active"
+                />
+            </Section>
+
+            <Section title="test">
+                <PlayerSeat
+                    player={mockPlayerActive}
+                    cards={[32]}
                     isTurn={true}
                     isSelf={true}
                     seatState="active"

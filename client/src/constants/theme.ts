@@ -1,6 +1,7 @@
 
 export const Colors = {
   background: {
+    home: "#3A050F",
     table: "#1e1e1e", //main; ActionBar, pot, infoBar
     cardFace: "#f8f8f6", //card front
     cardBack: "#1a4a8a", //card back

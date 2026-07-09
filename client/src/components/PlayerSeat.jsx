@@ -15,6 +15,7 @@ export default function PlayerSeat({
     cards = [],
     isTurn,
     isSelf,
+    isFirstToAct,
     seatState = SEAT_STATES.WAITING,
     cardWidth = 60,
     revealCards = false,
@@ -43,9 +44,9 @@ export default function PlayerSeat({
             <View style = {[styles.infoBar, isTurn && styles.infoBarActive]}>
                 <View style = {styles.nameRow}>
                     <Text style = {styles.name} numberOfLines = {1}>
+                        {isFirstToAct ? "(A) " : ""}
                         {player.name}
                         {player.isBot ? "🤖" : ""}
-                        {isSelf ? "(you)" : ""}
                     </Text>
                     {seatState === SEAT_STATES.FOLDED && (
                         <View style = {[styles.badge, styles.badgeFolded]}>

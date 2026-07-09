@@ -34,13 +34,13 @@ export default function HomeScreen() {
                 <TouchableOpacity style = {[styles.button, styles.hostButton]}
                 onPress = {handleHost}
                 >
-                    <Text style = {styles.buttonText}>HOST GAME</Text>
+                    <Text style = {styles.buttonText}>HOST</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style = {[styles.button, styles.joinButton]}
                 onPress = {handleJoin}
                 >
-                    <Text style = {styles.buttonText}>JOIN GAME</Text>
+                    <Text style = {styles.buttonText}>JOIN</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style = {styles.botButton} onPress = {handleBotGame}>
@@ -59,7 +59,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background.table,
+        backgroundColor: Colors.background.home,
         alignItems: "center",
         justifyContent: "center",
         gap: Spacing.xxl

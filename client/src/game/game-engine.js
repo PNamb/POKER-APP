@@ -75,7 +75,7 @@ function resolveWalk(state) { //handles if all but one has folded; returns a sta
     }
 }
 
-function nextActiveIndex(players, fromIndex, steps = 1) { //finds the next player index going clockwise; returns an index
+export function nextActiveIndex(players, fromIndex, steps = 1) { //finds the next player index going clockwise; returns an index
     let idx = fromIndex
     let found = 0
     while (found < steps) {
