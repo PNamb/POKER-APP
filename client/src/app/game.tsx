@@ -1,6 +1,6 @@
 import React from "react";
-import GameScreen from "@/screens/GameScreen"
+import GameScreen from "@/screens/GameScreen";
 
 export default function Game() {
-    return <GameScreen />
+  return <GameScreen />;
 }
