@@ -109,7 +109,7 @@ export function evaluate(cards) {
     .map(eval5)
     .reduce((best, curr) => (compareScores(curr, best) > 0 ? curr : best));
 }
-//TODO - check
+
 export function rankHands(HoleCards, CommunityCards) {
   //returns a 2D array of placements ([[{index, score}], [{index, score}], etc])
   const scores = HoleCards.map((hole, i) => ({

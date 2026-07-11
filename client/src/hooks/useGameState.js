@@ -26,7 +26,29 @@ export function useGameState({ mode, roomCode, playerName }) {
       return;
     }
 
-    setState({ ...prevState, lastAction: nextState.lastAction });
+    if (botTimeoutRef.current) {
+      clearTimeout(botTimeoutRef.current);
+      botTimeoutRef.current = null;
+    }
+
+    const actingIndex = nextState.lastAction?.playerIndex;
+    const actingPlayerNext = nextState.players.find(
+      (_, i) => i === actingIndex,
+    );
+
+    const frozenPlayers = prevState.players.map((p, i) => {
+      if (i !== actingIndex) return p;
+      const nextP = nextState.players[i];
+      const spent = p.chips - nextP.chips; // however much they put in this action
+      return {
+        ...p,
+        bet: p.bet + spent,
+        chips: nextP.chips,
+        allIn: nextP.allIn,
+      };
+    });
+
+    setState({ ...prevState, players: frozenPlayers, pot: prevState.pot, lastAction: nextState.lastAction });
     setIsTransitioning(true);
 
     transitionRef.current = setTimeout(() => {

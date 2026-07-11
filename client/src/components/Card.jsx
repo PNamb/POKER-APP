@@ -99,9 +99,6 @@ const PIP_LAYOUTS = {
   ],
 };
 
-const FACE_ART = { J: "🃏", Q: "♛", K: "🜲" }; //placeholder face art
-const FACE_NAMES = { J: "Jack", Q: "Queen", K: "King" };
-
 function SuitIcon({ suit, size, color }) {
   const d = SUIT_PATHS[suit];
   if (!d) return null;
@@ -251,9 +248,6 @@ const styles = StyleSheet.create({
   centerArea: { flex: 1 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   pipArea: { flex: 1, position: "relative" },
-  faceArt: { fontSize: 20 },
-  faceName: { fontSize: 8, fontWeight: "500" },
-  aceSym: { fontSize: 28 },
   backPattern: {
     flex: 1,
     borderRadius: 6,

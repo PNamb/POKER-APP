@@ -19,6 +19,7 @@ function calculateSidePots(players) {
 
   const pots = [];
   let prev = 0;
+  let carry = 0;
 
   for (const level of betLevels) {
     const contribution = level - prev;
@@ -39,15 +40,17 @@ function calculateSidePots(players) {
 
     if (amount > 0 && eligiblePlayers.length > 0) {
       pots.push({
-        amount,
+        amount: amount + carry,
         eligiblePlayers: eligiblePlayers.map((p) => players.indexOf(p)),
       });
-    } else if (amount > 0) {
-      if (pots.length > 0) {
-        pots[pots.length - 1].amount += amount;
-      }
+      carry = 0;
+    } else {
+      carry += amount;
     }
     prev = level;
+  }
+  if (carry > 0 && pots.length > 0) {
+    pots[pots.length - 1].amount += carry 
   }
 
   return pots;
@@ -129,32 +132,18 @@ function postBlind(player, amount) {
 }
 
 function runOut(state) {
-  //resolves a state where everyone has gone all-in or folded
-  let current = {
-    ...state,
-    players: state.players.map((p) => ({ ...p, bet: 0 })),
-  };
+  //resolves a state where everyone has gone all in or folded
+  let current = { ...state, players: state.players.map((p) => ({ ...p, bet: 0 })) };
 
-  while (current.phase !== "river") {
-    const nextPhase = PHASES[PHASES.indexOf(current.phase) + 1];
-
-    if (nextPhase === "flop") {
-      const dealt = deal(current.deck, 3);
-      current = {
-        ...current,
-        deck: dealt.remaining,
-        communityCards: dealt.cards,
-        phase: "flop",
-      };
-    } else {
-      const dealt = deal(current.deck, 1);
-      current = {
-        ...current,
-        deck: dealt.remaining,
-        communityCards: [...current.communityCards, ...dealt.cards],
-        phase: nextPhase,
-      };
-    }
+  const needed = 5 - current.communityCards.length;
+  if (needed > 0) {
+    const dealt = deal(current.deck, needed);
+    current = {
+      ...current,
+      deck: dealt.remaining,
+      communityCards: [...current.communityCards, ...dealt.cards],
+      phase: "river",
+    };
   }
   return advancePhase(current);
 }
@@ -443,9 +432,9 @@ export function advanceAction(state) {
   const contestants = state.players.filter(
     (p) => !p.folded && p.chips + p.bet > 0,
   );
-  const nothingLeftToDecide = activePlayers.every(
-    (p) => p.bet === state.currentBet,
-  );
+  const nothingLeftToDecide =
+    activePlayers.every((p) => p.bet === state.currentBet) &&
+    activePlayers.every((_, i) => state.actedThisRound.includes(state.players.indexOf(activePlayers[i])));
 
   if (
     activePlayers.length <= 1 &&

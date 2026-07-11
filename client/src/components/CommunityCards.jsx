@@ -32,11 +32,6 @@ export default function CommunityCards({ cards = [], cardWidth = 70, style }) {
     );
   };
 
-  const labelStreet = (cards) => {
-    //get current street
-    return STREET_LABELS[cards.length];
-  };
-
   return (
     //return cards/placeholders
     <View style={[styles.container, style]}>{renderRow()}</View>

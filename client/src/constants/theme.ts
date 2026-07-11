@@ -44,16 +44,11 @@ export const Colors = {
 
 export const Typography = {
   size: {
-    faceName: 8, //label on face cards
     badge: 9, //"FOLDED" and "ALL IN"  badge text
     cornerSuit: 11, //suit symbol in card corners
-    pipTen: 9, //pip size for 10
-    pip: 11, //pip size for cards other than 10
     label: 12, //chip amount, raise label
     body: 13, //player name, pot amount, button text
     button: 14, //Action bar buttons
-    faceArt: 20, //center face art for face cards
-    aceSym: 28, //suit symbol for Ace
   },
   weight: {
     normal: "500" as const,
