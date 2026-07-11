@@ -162,15 +162,18 @@ function runOut(state) {
 export function nextActiveIndex(players, fromIndex, steps = 1) {
   //finds the next player index going clockwise; returns an index
   let idx = fromIndex;
+  let lastValid = fromIndex;
   let found = 0;
   let attempts = 0;
   while (found < steps && attempts < players.length) {
     idx = (idx + 1) % players.length;
-    if (!players[idx].folded && !players[idx].allIn && players[idx].chips > 0)
+    if (!players[idx].folded && !players[idx].allIn && players[idx].chips > 0) {
       found++;
+      lastValid = idx;
+    }
     attempts++;
   }
-  return idx;
+  return found > 0 ? lastValid : fromIndex;
 }
 
 export function createBotGame(playerName, numBots, options = {}) {
