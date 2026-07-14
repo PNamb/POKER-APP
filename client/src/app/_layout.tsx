@@ -1,9 +1,15 @@
 import React from "react";
 import { Stack } from "expo-router";
 import { Colors } from "@/constants/theme";
+import { useBackgroundMusic } from "@/hooks/useBackgroundMusic"
+import { MusicProvider } from "@/contexts/MusicContext";
+import { StatusBar } from "react-native";
 
-export default function RootLayout() {
+function LayoutInner() {
+  useBackgroundMusic()
   return (
+    <>
+    <StatusBar hidden />
     <Stack
       screenOptions={{
         headerShown: false,
@@ -15,5 +21,14 @@ export default function RootLayout() {
       <Stack.Screen name="lobby" />
       <Stack.Screen name="game" />
     </Stack>
+    </>
   );
+}
+
+export default function RootLayout() {
+  return (
+    <MusicProvider>
+      <LayoutInner />
+    </MusicProvider>
+  )
 }

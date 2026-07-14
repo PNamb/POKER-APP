@@ -1,7 +1,9 @@
 import React from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useGameState } from "../hooks/useGameState";
+import { useSoundEffects } from "../hooks/useSoundEffects"
 import CommunityCards from "../components/CommunityCards";
 import PotDisplay from "../components/PotDisplay";
 import PlayerSeat from "../components/PlayerSeat";
@@ -11,12 +13,16 @@ import { Colors, Radius, Spacing, Typography } from "../constants/theme";
 import { nextActiveIndex } from "@/game/game-engine";
 
 export default function GameScreen() {
+  //this is the game screen
   const router = useRouter();
   const params = useLocalSearchParams();
+  const insets = useSafeAreaInsets();
 
   const mode = params.mode ?? "bot";
+  const numBots = params.numBots ?? 2;
   const roomCode = params.roomCode;
   const isHost = params.isHost === "true";
+  const name = params.name ?? "You";
 
   const {
     state,
@@ -28,7 +34,8 @@ export default function GameScreen() {
     onCall,
     onRaise,
     startNextHand,
-  } = useGameState({ mode, roomCode, playerName: "You" });
+  } = useGameState({ mode, numBots, roomCode, playerName: name });
+  useSoundEffects(state);
 
   const handleLeave = () => {
     router.push("/");
@@ -165,6 +172,7 @@ export default function GameScreen() {
         onRaise={onRaise}
         maxRaise={localPlayer.chips}
         isTurn={isLocalPlayerTurn}
+        style = {{paddingBottom: insets.bottom + Spacing.md}}
       />
     </View>
   );

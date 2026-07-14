@@ -19,7 +19,7 @@ export const Colors = {
     medium: "#444444", //slider track, dashed placeholders
     muted: "#555555", //side pot
     card: "#cccccc", //card outline
-    gold: "#f0c040", //active accent (pot, active seat, raise)
+    gold: "#fa8321", //active accent (pot, active seat, raise)
     danger: "#c0392b", //fold button or all-in badge
     success: "#27ae60", //call button
     info: "#2980b9", //check button
@@ -39,6 +39,9 @@ export const Colors = {
     fill: "#f0c040",
     track: "#444444",
     thumb: "#f0c040",
+  },
+  item: {
+    chips: "#ac2525"
   },
 } as const;
 

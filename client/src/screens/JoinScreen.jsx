@@ -12,6 +12,7 @@ import { Colors, Spacing, Typography, Radius } from "@/constants/theme";
 const CODE_LENGTH = 6;
 
 export default function JoinScreen() {
+  //this is the code-entering screen
   const router = useRouter();
 
   const [code, setCode] = useState("");
@@ -71,6 +72,7 @@ export default function JoinScreen() {
           autoCapitalize="characters"
           autoCorrect={false}
           maxLength={CODE_LENGTH}
+          autoFocus = {true}
         />
         {error && <Text style={styles.error}>{error}</Text>}
 

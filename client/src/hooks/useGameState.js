@@ -7,11 +7,11 @@ import {
 } from "../game/game-engine";
 import { botAction } from "../game/bot-ai";
 
-const BOT_ACTION_DELAY = 500; //ms
+const BOT_ACTION_DELAY = 200; //ms
 const REVEAL_DELAY = 100; //ms
 const ACTION_SETTLE_DELAY = 150; //ms
 
-export function useGameState({ mode, roomCode, playerName }) {
+export function useGameState({ mode, numBots, roomCode, playerName }) {
   const [state, setState] = useState(null);
   const [localPlayerIndex, setLocalPlayerIndex] = useState(0);
   const botTimeoutRef = useRef(null);
@@ -19,16 +19,16 @@ export function useGameState({ mode, roomCode, playerName }) {
   const transitionRef = useRef(null);
 
   const commitState = useCallback((prevState, nextState) => {
+    if (botTimeoutRef.current) {
+      clearTimeout(botTimeoutRef.current);
+      botTimeoutRef.current = null;
+    }
+    
     const phaseChanged = prevState && nextState.phase !== prevState.phase;
 
     if (!phaseChanged) {
       setState(nextState);
       return;
-    }
-
-    if (botTimeoutRef.current) {
-      clearTimeout(botTimeoutRef.current);
-      botTimeoutRef.current = null;
     }
 
     const actingIndex = nextState.lastAction?.playerIndex;
@@ -39,7 +39,7 @@ export function useGameState({ mode, roomCode, playerName }) {
     const frozenPlayers = prevState.players.map((p, i) => {
       if (i !== actingIndex) return p;
       const nextP = nextState.players[i];
-      const spent = p.chips - nextP.chips; // however much they put in this action
+      const spent = p.chips - nextP.chips; //however much they put in this action
       return {
         ...p,
         bet: p.bet + spent,
@@ -59,7 +59,7 @@ export function useGameState({ mode, roomCode, playerName }) {
 
   useEffect(() => {
     if (mode === "bot") {
-      const game = createBotGame(playerName || "You", 3); //3 bots by default
+      const game = createBotGame(playerName || "You", numBots); //3 bots by default
       setState(advancePhase({ ...game, phase: "waiting" })); //start first hand
       setLocalPlayerIndex(0);
     }
@@ -72,7 +72,7 @@ export function useGameState({ mode, roomCode, playerName }) {
       if (botTimeoutRef.current) clearTimeout(botTimeoutRef.current);
       if (transitionRef.current) clearTimeout(transitionRef.current);
     };
-  }, [mode]);
+  }, [mode, numBots]);
 
   const performAction = useCallback(
     (action) => {

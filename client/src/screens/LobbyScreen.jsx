@@ -9,6 +9,8 @@ import {
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Colors, Spacing, Typography, Radius } from "@/constants/theme";
+import Svg, { Path } from "react-native-svg";
+import { chipArt, altChipArt } from "@/assets/SVG-icons";
 
 const ROOM_CODE_LENGTH = 6;
 const CODE_CHARACTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -22,12 +24,23 @@ function generateRoomCode() {
   return code;
 }
 
+function Art({ art, box, size = 27, color = "#ac2525" }) {
+  return (
+    <Svg width={size} height={size} viewBox={box}>
+      <Path d={art} fill={color} fillRule="evenodd" />
+    </Svg>
+  );
+}
+
 export default function LobbyScreen() {
+  //this is the waiting room
   const router = useRouter(); //for navigating
   const params = useLocalSearchParams(); //for getting "router.push(...)" information from other screens
 
   const isHost = params.isHost === "true";
   const joinedRoomCode = params.roomCode; //present when joining, not when hosting
+
+  const [error, setError] = useState(null);
 
   const [playerName, setPlayerName] = useState("");
   const [nameSubmitted, setNameSubmitted] = useState(false);
@@ -38,6 +51,9 @@ export default function LobbyScreen() {
   //TODO - replace with real player list from socket-client.js once networking exists
   const [players, setPlayers] = useState([]);
 
+  const [bots, setBots] = useState([]);
+  const [nextBotNumber, setNextBotNumber] = useState(1);
+
   useEffect(() => {
     //once name is submitted, add ourselves to the player list
     if (nameSubmitted) {
@@ -45,8 +61,16 @@ export default function LobbyScreen() {
     }
   }, [nameSubmitted]);
 
+  const BOT_NAME_PATTERN = /^bot\s*\d+$/i;
+
   const handleSubmitName = () => {
-    if (playerName.trim().length === 0) return;
+    const trimmed = playerName.trim()
+    if (trimmed.length === 0) return;
+    if (BOT_NAME_PATTERN.test(trimmed)) {
+      setPlayerName("")
+      setError("Invalid name")
+      return;
+    }
     setNameSubmitted(true);
   };
 
@@ -54,9 +78,25 @@ export default function LobbyScreen() {
     router.back();
   };
 
+  const handleAddBot = () => {
+    const bot = {id: `bot-${nextBotNumber}`, name: "Bot"}
+    setBots((prev) => [...prev, bot])
+    setNextBotNumber((n) => n + 1)
+  }
+
+  const handleRemoveBot = (botID) => {
+    setBots((prev) => prev.filter((b) => b.id !== botID))
+  }
+
   const handleStartGame = () => {
-    router.push({ pathname: "/game", params: { mode: "online", roomCode } });
+    if (isHost && players.length === 1) {
+      router.push({pathname: "/game", params: {mode: "bot", numBots: bots.length, name: playerName}})
+      return
+    }
+    router.push({ pathname: "/game", params: { mode: "online", roomCode, numBots: bots.length } });
   };
+
+  const roster = [...players.map((p) => ({...p, isBot: false})), ...bots.map((b) => ({...b, isBot: true}))]
 
   const renderPlayer = ({ item }) => {
     //render a single player
@@ -64,11 +104,33 @@ export default function LobbyScreen() {
       <View style={styles.playerRow}>
         <Text style={styles.playerName}>
           {item.name}
-          {item.isHost ? " (host) " : ""}
+          {item.isBot ? " 🤖" : ""}
         </Text>
+        {item.isHost && (
+          <>
+          <Art art = {chipArt} box = {"0 0 100 100"} />
+          <TextInput style = {styles.chipInput} placeholder = "------"></TextInput>
+          <Art art = {altChipArt} box = {"0 0 64 64"} color = {"#1a4a8a"} />
+          <TextInput style = {styles.blindInput} placeholder = "------"></TextInput>
+          </>
+        )}
+        {item.isBot && isHost && (
+          <TouchableOpacity style = {[styles.removeBotButton, {backgroundColor: "#712c2c"}]} onPress = {() => handleRemoveBot(item.id)}>
+            <Text style = {styles.removeBotText}>✕</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   };
+
+  const renderAddBotButton = () => {
+    if (!isHost) return null
+    return (
+      <TouchableOpacity style = {styles.addBotButton} onPress = {handleAddBot}>
+        <Text style = {styles.addBotText}>+</Text>
+      </TouchableOpacity>
+    )
+  }
 
   if (!nameSubmitted) {
     //if we haven't submitted out name yet, render the input box
@@ -83,12 +145,16 @@ export default function LobbyScreen() {
           <TextInput
             style={styles.nameInput}
             value={playerName}
-            onChangeText={setPlayerName}
-            placeholder="Your Name"
+            onChangeText={(text) => {
+              setPlayerName(text);
+              if (error) setError(null)
+            }}
+            placeholder="NAME"
             placeholderTextColor={Colors.text.muted}
-            maxLength={20}
+            maxLength={12}
             autoFocus={true}
           />
+          
           <TouchableOpacity
             style={[
               styles.primaryButton,
@@ -103,6 +169,7 @@ export default function LobbyScreen() {
       </View>
     );
   }
+  
   return (
     //if we have submitted our name, render the room code, the current player list, and either a start button or waiting button
     <View style={styles.container}>
@@ -120,12 +187,13 @@ export default function LobbyScreen() {
         <View style={styles.playerList}>
           <Text style={styles.playerListLabel}>
             {" "}
-            ({players.length}) PLAYERS
+            ({roster.length}) PLAYERS
           </Text>
           <FlatList
-            data={players}
+            data={roster}
             keyExtractor={(item) => item.id}
             renderItem={renderPlayer}
+            ListFooterComponent = {renderAddBotButton}
           />
         </View>
         {isHost ? (
@@ -178,6 +246,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: Colors.text.primary,
     fontSize: 28,
+    letterSpacing: 8,
     borderWidth: 0.5,
     borderColor: Colors.border.gold,
     borderRadius: Radius.card,
@@ -214,6 +283,9 @@ const styles = StyleSheet.create({
     fontSize: Typography.size.label,
   },
   playerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     borderWidth: 0.5,
     borderColor: Colors.border.subtle,
     borderRadius: Radius.card,
@@ -224,6 +296,51 @@ const styles = StyleSheet.create({
   playerName: {
     color: Colors.text.primary,
     fontSize: Typography.size.body,
+  },
+  chipInput: {
+    width: "28%",
+    height: "90%",
+    textAlign: "center",
+    borderWidth: 0.5,
+    borderRadius: Radius.badge,
+    backgroundColor: Colors.item.chips,
+    
+    placeholderTextColor: Colors.text.muted
+  },
+  blindInput: {
+    width: "28%",
+    height: "90%",
+    textAlign: "center",
+    borderWidth: 0.5,
+    borderRadius: Radius.badge,
+    backgroundColor: Colors.background.cardBack,
+    placeholderTextColor: Colors.text.muted
+  },
+  removeBotButton: {
+    alignItems: "flex-end",
+    borderRadius: 5,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs
+  },
+  removeBotText: {
+    color: Colors.border.danger,
+    fontSize: Typography.size.body,
+    fontWeight: Typography.weight.semiBold
+  },
+  addBotButton: {
+    borderWidth: 0.5,
+    borderColor: Colors.border.medium,
+    borderStyle: "dashed",
+    borderRadius: Radius.card,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    alignItems: "center",
+    marginBottom: Spacing.xs
+  },
+  addBotText: {
+    color: Colors.text.secondary,
+    fontSize: Typography.size.body
   },
   primaryButton: {
     width: "70%",

@@ -3,27 +3,28 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { Colors, Spacing, Typography, Radius } from "@/constants/theme";
 import Svg, { Path } from "react-native-svg";
+import { useMusic } from "@/contexts/MusicContext";
+import { titleArt, cogArt, bookArt, soundOnArt, soundOffArt, profileArt} from "@/assets/SVG-icons"
 
-const titleArt1 =
-  "m17.714 48.614 28.504 6.148a2.327 2.327 0 0 0 2.765-1.784l9-41.725a2.327 2.327 0 0 0-1.784-2.765L27.696 2.341a2.327 2.327 0 0 0-2.765 1.784l-9 41.725a2.326 2.326 0 0 0 1.783 2.764";
-const titleArt2 =
-  "M17.714 48.614a2.327 2.327 0 0 1-1.784-2.765l8.374-38.824L8.497 4.837a2.327 2.327 0 0 0-2.623 1.986L.022 49.104a2.327 2.327 0 0 0 1.986 2.624l28.884 3.997a2.33 2.33 0 0 0 2.624-1.986l.231-1.667z";
-const titleArt3 =
-  "M34.58 39.569c-5.01-5.322-7.21-9.804-8.012-12.992-.937-3.726 1.591-8.277 5.361-9.017 4.431-.87 6.691 3.28 6.691 3.28s3.77-2.849 7.448-.23c3.129 2.229 3.557 7.417 1.167 10.425-2.044 2.574-5.896 5.751-12.655 8.534";
-const titleArt4 =
-  "M22.218 16.701a53 53 0 0 0-1.037-.976C14.65 19.006 11.047 22.462 9.2 25.183c-2.157 3.179-1.343 8.321 1.944 10.309 3.25 1.966 6.267.072 7.146-.58z";
-const titleArt = `${titleArt1} ${titleArt2} ${titleArt3} ${titleArt4}`;
-
-function TitleArt({ size = 300, color = "#e0e2e0" }) {
+function Art({ art, box, size = 35, color = "#ffffff", isStroke = false }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 58.036 58.036">
-      <Path d={titleArt} fill={color} fillRule="evenodd" />
+    <Svg width={size} height={size} viewBox={box}>
+      <Path 
+      d = {art} 
+      fill = {isStroke ? "none": color}
+      stroke = {isStroke ? color: "none"}
+      strokeWidth = {isStroke ? 2 : 0}
+      strokeLinecap = {isStroke ? "round" : undefined}
+      strokeLinejoin = {isStroke ? "round" : undefined}
+      fillRule = "evenodd" />
     </Svg>
   );
 }
 
 export default function HomeScreen() {
+  //this is the title screen
   const router = useRouter(); //use to navigate to other screens
+  const {muted, toggleMute} = useMusic()
 
   const handleHost = () => {
     router.push({ pathname: "/lobby", params: { isHost: true } });
@@ -31,10 +32,6 @@ export default function HomeScreen() {
 
   const handleJoin = () => {
     router.push("/join");
-  };
-
-  const handleBotGame = () => {
-    router.push({ pathname: "/game", params: { mode: "bot" } });
   };
 
   //TEMP DEV ONLY
@@ -47,7 +44,7 @@ export default function HomeScreen() {
       <View style={styles.titleBlock}>
         <Text style={styles.title}>POKER</Text>
         <Text style={styles.subTitle}>TEXAS HOLD'EM</Text>
-        <TitleArt />
+        <Art art = {titleArt} box = {"0 0 58.036 58.036"} size = {350} color = {"#e0e2e0"} />
       </View>
 
       <View style={styles.actions}>
@@ -65,9 +62,24 @@ export default function HomeScreen() {
           <Text style={styles.buttonText}>JOIN</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.botButton} onPress={handleBotGame}>
-          <Text style={styles.botButtonText}>Play V.S. Bots</Text>
-        </TouchableOpacity>
+        <View style = {styles.settingsButtonRow}>
+
+          <TouchableOpacity style = {[styles.settingsButton, {backgroundColor: "#89d7f3"}, {borderColor: "#89b3f3"}]}>
+            <Art art = {cogArt} box = {"0 0 64 64"} size = {40}/>
+          </TouchableOpacity>
+
+          <TouchableOpacity style = {[styles.settingsButton, {backgroundColor: "#e67f11"}, {borderColor: "#e66a11"}]} onPress = {toggleMute}>
+            <Art art = {muted? soundOffArt : soundOnArt} box = {"0 0 24 24"} size = {40} isStroke = {true} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style = {[styles.settingsButton, {backgroundColor: "#0ce00cb7"}, {borderColor: "#107b10"}]}>
+            <Art art = {profileArt} box = {"0 0 24 24"} size = {40} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style = {[styles.settingsButton, {backgroundColor: "#de5050"}, {borderColor: "#ef2f2f"}]}>
+            <Art art = {bookArt} box = {"0 0 24 24"} size = {40} />
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity style={styles.devButton} onPress={handleUITest}>
           <Text style={styles.devButtonText}>🛠 UI Test Harness</Text>
@@ -98,6 +110,8 @@ const styles = StyleSheet.create({
   subTitle: {
     color: Colors.text.secondary,
     fontSize: Typography.size.body,
+    textAlign: "center",
+    alignSelf: "stretch"
   },
   actions: {
     width: "80%",
@@ -111,6 +125,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 0.5,
+  },
+  smallButton: {
+    paddingHorizontal: Spacing.md,
+    borderWidth: 1.5,
+    borderColor: Colors.border.medium,
+    borderRadius: Radius.card,
   },
   hostButton: {
     backgroundColor: Colors.action.raise,
@@ -132,6 +152,23 @@ const styles = StyleSheet.create({
   botButtonText: {
     fontSize: Typography.size.label,
     color: Colors.text.muted,
+    textAlign: "center",
+    alignSelf: "stretch"
+  },
+  settingsButtonRow: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: Spacing.sm,
+  },
+  settingsButton: {
+    width: 50,
+    height: 50,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: Colors.border.medium,
+    borderRadius: Radius.card,
   },
   devButton: {
     marginTop: Spacing.xs,

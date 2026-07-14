@@ -3,6 +3,25 @@ import { PHASES, state } from "./game-state";
 import { rankHands } from "./hand-evaluator";
 import * as Crypto from "expo-crypto";
 
+const DEAL_COUNTS = {flop: 3, turn: 1, river: 1}
+
+function dealStreet(state, phase) {
+  const dealt = deal(state.deck, DEAL_COUNTS[phase])
+  return advanceAction({
+    ...state,
+    phase,
+    deck: dealt.remaining,
+    communityCards: [...state.communityCards, ...dealt.cards],
+    players: state.players.map((p) => ({...p, bet: 0})),
+    currentBet: 0,
+    minRaise: state.bigBlind,
+    activeIndex: state.dealerIndex,
+    actionHistory: [],
+    actedThisRound: [],
+    bigBlindActed: false
+  })
+}
+
 function calculateSidePots(players) {
   //returns all side pots and their eligible players ([{amount, players}, {amount, players}, etc])
   const activePlayers = players.filter((p) => p.totalBet > 0);
@@ -122,12 +141,13 @@ function resolveWalk(state) {
 function postBlind(player, amount) {
   //posts the blind for the given player; returns a state
   const actual = Math.min(amount, player.chips);
+  const remainingChips = player.chips - actual
   return {
     ...player,
     chips: player.chips - actual,
     bet: actual,
     totalBet: actual,
-    allIn: actual < amount,
+    allIn: remainingChips === 0,
   };
 }
 
@@ -151,7 +171,7 @@ function runOut(state) {
 export function nextActiveIndex(players, fromIndex, steps = 1) {
   //finds the next player index going clockwise; returns an index
   let idx = fromIndex;
-  let lastValid = fromIndex;
+  let lastValid = null;
   let found = 0;
   let attempts = 0;
   while (found < steps && attempts < players.length) {
@@ -162,7 +182,7 @@ export function nextActiveIndex(players, fromIndex, steps = 1) {
     }
     attempts++;
   }
-  return found > 0 ? lastValid : fromIndex;
+  return lastValid;
 }
 
 export function createBotGame(playerName, numBots, options = {}) {
@@ -306,68 +326,19 @@ export function advancePhase(state) {
   if (state.phase === "showdown") return state;
   const currentPhase = state.phase;
   const nextPhase = PHASES[(PHASES.indexOf(currentPhase) + 1) % PHASES.length];
-  const players = state.players.map((p) => ({ ...p, bet: 0 }));
 
   switch (nextPhase) {
     case "preflop":
       return startHand(state);
 
     case "flop": {
-      const dealt = deal(state.deck, 3);
-
-      const newState = {
-        ...state,
-        phase: "flop",
-        deck: dealt.remaining,
-        communityCards: dealt.cards,
-        players,
-        currentBet: 0,
-        minRaise: state.bigBlind,
-        activeIndex: state.dealerIndex,
-        actionHistory: [],
-        actedThisRound: [],
-        bigBlindActed: false,
-      };
-
-      return advanceAction(newState);
+      return dealStreet(state, "flop")
     }
     case "turn": {
-      const dealt = deal(state.deck, 1);
-
-      const newState = {
-        ...state,
-        phase: "turn",
-        deck: dealt.remaining,
-        communityCards: [...state.communityCards, ...dealt.cards],
-        players,
-        currentBet: 0,
-        minRaise: state.bigBlind,
-        activeIndex: state.dealerIndex,
-        actionHistory: [],
-        actedThisRound: [],
-        bigBlindActed: false,
-      };
-
-      return advanceAction(newState);
+      return dealStreet(state, "turn")
     }
     case "river": {
-      const dealt = deal(state.deck, 1);
-
-      const newState = {
-        ...state,
-        phase: "river",
-        deck: dealt.remaining,
-        communityCards: [...state.communityCards, ...dealt.cards],
-        players,
-        currentBet: 0,
-        minRaise: state.bigBlind,
-        activeIndex: state.dealerIndex,
-        actionHistory: [],
-        actedThisRound: [],
-        bigBlindActed: false,
-      };
-
-      return advanceAction(newState);
+      return dealStreet(state, "river")
     }
     //TODO - check
     case "showdown": {
@@ -427,23 +398,11 @@ export function advancePhase(state) {
 export function advanceAction(state) {
   //advances action to the next player; also checks if betting is complete and advances phase if so; returns a state
   const activePlayers = state.players.filter(
-    (p) => !p.folded && !p.allIn && p.chips + p.bet > 0,
+    (p) => !p.folded && p.chips > 0,
   );
   const contestants = state.players.filter(
     (p) => !p.folded && p.chips + p.bet > 0,
   );
-  const nothingLeftToDecide =
-    activePlayers.every((p) => p.bet === state.currentBet) &&
-    activePlayers.every((_, i) => state.actedThisRound.includes(state.players.indexOf(activePlayers[i])));
-
-  if (
-    activePlayers.length <= 1 &&
-    contestants.length > 1 &&
-    nothingLeftToDecide &&
-    state.phase !== "showdown"
-  ) {
-    return runOut(state);
-  }
 
   const bigBlindPending =
     state.phase === "preflop" &&
@@ -452,23 +411,26 @@ export function advanceAction(state) {
   const allActed = state.players.every(
     (p, i) =>
       p.folded ||
-      p.allIn ||
-      p.chips + p.bet === 0 ||
+      p.chips === 0 ||
       state.actedThisRound.includes(i),
   );
   const bettingComplete =
     !bigBlindPending &&
     activePlayers.every((p) => p.bet === state.currentBet) &&
     allActed;
+  
+  if (!bettingComplete) {
+    const nextIndex = nextActiveIndex(state.players, state.activeIndex);
+    if (nextIndex !== null) {
+      return {...state, activeIndex: nextIndex};
+    }
+  }
 
-  if (bettingComplete) return advancePhase(state);
+  if (activePlayers.length <= 1 && contestants.length > 1) {
+    return runOut(state)
+  }
 
-  const nextIndex = nextActiveIndex(state.players, state.activeIndex);
-
-  return {
-    ...state,
-    activeIndex: nextIndex,
-  };
+  return advancePhase(state)
 }
 
 export function fold(state, playerIndex) {
