@@ -3,26 +3,122 @@ import { PHASES, state } from "./game-state";
 import { rankHands } from "./hand-evaluator";
 import * as Crypto from "expo-crypto";
 
-const DEAL_COUNTS = {flop: 3, turn: 1, river: 1}
+const DEAL_COUNTS = { flop: 3, turn: 1, river: 1 };
 
 function dealStreet(state, phase) {
-  const dealt = deal(state.deck, DEAL_COUNTS[phase])
+  const dealt = deal(state.deck, DEAL_COUNTS[phase]);
   return advanceAction({
     ...state,
     phase,
     deck: dealt.remaining,
     communityCards: [...state.communityCards, ...dealt.cards],
-    players: state.players.map((p) => ({...p, bet: 0})),
+    players: state.players.map((p) => ({ ...p, bet: 0 })),
     currentBet: 0,
     minRaise: state.bigBlind,
     activeIndex: state.dealerIndex,
     actionHistory: [],
     actedThisRound: [],
-    bigBlindActed: false
-  })
+    bigBlindActed: false,
+  });
 }
 
-function calculateSidePots(players) {
+function validate(state, playerIndex, action) {
+  //validates that the action can be done by the given player; throws errors
+  const player = state.players[playerIndex];
+
+  if (player.folded) {
+    throw new Error(`Player ${playerIndex} has already folded`);
+  }
+  if (player.allIn) {
+    throw new Error(`Player ${playerIndex} is already all in`);
+  }
+  if (state.activeIndex !== playerIndex) {
+    throw new Error(`It is not Player ${playerIndex}'s turn`);
+  }
+  if (state.phase === "waiting" || state.phase === "showdown") {
+    throw new Error(
+      `Player ${playerIndex} can't act during ${state.phase} phase`
+    );
+  }
+  if (action.type === "check") {
+    if (state.currentBet !== player.bet) {
+      throw new Error(
+        `Player ${playerIndex} can't check; must call ${state.currentBet} or raise`
+      );
+    }
+  }
+  if (action.type === "call") {
+    if (state.currentBet === player.bet) {
+      throw new Error(`Player ${playerIndex} can't call; no bet to call`);
+    }
+  }
+  if (action.type === "raise") {
+    const requiredTotal = state.currentBet + state.minRaise;
+    const playerTotalPotential = player.bet + player.chips;
+
+    if (
+      action.amount < state.minRaise &&
+      playerTotalPotential >= requiredTotal
+    ) {
+      throw new Error(
+        `Player ${playerIndex} must raise by at least ${state.minRaise}`
+      );
+    }
+  }
+}
+
+function resolveWalk(state) {
+  //handles if all but one has folded; returns a state
+  const winner = state.players.find((p) => !p.folded && p.chips + p.bet > 0);
+  const winnerIndex = state.players.indexOf(winner);
+
+  const players = state.players.map((p, i) =>
+    i === winnerIndex ? { ...p, chips: p.chips + state.pot } : p
+  ); //bugged
+
+  return {
+    ...state,
+    players,
+    phase: "showdown",
+    pot: 0,
+    winners: [{ playerIndex: winnerIndex, amount: state.pot, handName: null }],
+  };
+}
+
+function postBlind(player, amount) {
+  //posts the blind for the given player; returns a state
+  const actual = Math.min(amount, player.chips);
+  const remainingChips = player.chips - actual;
+  return {
+    ...player,
+    chips: player.chips - actual,
+    bet: actual,
+    totalBet: actual,
+    allIn: remainingChips === 0,
+  };
+}
+
+function runOut(state) {
+  //resolves a state where everyone has gone all in or folded
+  let current = {
+    ...state,
+    players: state.players.map((p) => ({ ...p, bet: 0 })),
+  };
+
+  const needed = 5 - current.communityCards.length;
+  if (needed > 0) {
+    const dealt = deal(current.deck, needed);
+    current = {
+      ...current,
+      deck: dealt.remaining,
+      communityCards: [...current.communityCards, ...dealt.cards],
+      phase: "river",
+    };
+  }
+  return advancePhase(current);
+}
+
+export function calculateSidePots(players) {
   //returns all side pots and their eligible players ([{amount, players}, {amount, players}, etc])
   const activePlayers = players.filter((p) => p.totalBet > 0);
   const capLevels = [
@@ -50,11 +146,11 @@ function calculateSidePots(players) {
     const payers = activePlayers.filter((p) => p.totalBet > prev);
     const amount = payers.reduce(
       (sum, p) => sum + (Math.min(level, p.totalBet) - prev),
-      0,
+      0
     );
 
     const eligiblePlayers = payers.filter(
-      (p) => !p.folded && p.totalBet >= level,
+      (p) => !p.folded && p.totalBet >= level
     );
 
     if (amount > 0 && eligiblePlayers.length > 0) {
@@ -69,103 +165,10 @@ function calculateSidePots(players) {
     prev = level;
   }
   if (carry > 0 && pots.length > 0) {
-    pots[pots.length - 1].amount += carry 
+    pots[pots.length - 1].amount += carry;
   }
 
   return pots;
-}
-
-function validate(state, playerIndex, action) {
-  //validates that the action can be done by the given player; throws errors
-  const player = state.players[playerIndex];
-
-  if (player.folded) {
-    throw new Error(`Player ${playerIndex} has already folded`);
-  }
-  if (player.allIn) {
-    throw new Error(`Player ${playerIndex} is already all in`);
-  }
-  if (state.activeIndex !== playerIndex) {
-    throw new Error(`It is not Player ${playerIndex}'s turn`);
-  }
-  if (state.phase === "waiting" || state.phase === "showdown") {
-    throw new Error(
-      `Player ${playerIndex} can't act during ${state.phase} phase`,
-    );
-  }
-  if (action.type === "check") {
-    if (state.currentBet !== player.bet) {
-      throw new Error(
-        `Player ${playerIndex} can't check; must call ${state.currentBet} or raise`,
-      );
-    }
-  }
-  if (action.type === "call") {
-    if (state.currentBet === player.bet) {
-      throw new Error(`Player ${playerIndex} can't call; no bet to call`);
-    }
-  }
-  if (action.type === "raise") {
-    const requiredTotal = state.currentBet + state.minRaise;
-    const playerTotalPotential = player.bet + player.chips;
-
-    if (
-      action.amount < state.minRaise &&
-      playerTotalPotential >= requiredTotal
-    ) {
-      throw new Error(
-        `Player ${playerIndex} must raise by at least ${state.minRaise}`,
-      );
-    }
-  }
-}
-
-function resolveWalk(state) {
-  //handles if all but one has folded; returns a state
-  const winner = state.players.find((p) => !p.folded && p.chips + p.bet > 0);
-  const winnerIndex = state.players.indexOf(winner);
-
-  const players = state.players.map((p, i) =>
-    i === winnerIndex ? { ...p, chips: p.chips + state.pot } : p,
-  ); //bugged
-
-  return {
-    ...state,
-    players,
-    phase: "showdown",
-    pot: 0,
-    winners: [{ playerIndex: winnerIndex, amount: state.pot, handName: null }],
-  };
-}
-
-function postBlind(player, amount) {
-  //posts the blind for the given player; returns a state
-  const actual = Math.min(amount, player.chips);
-  const remainingChips = player.chips - actual
-  return {
-    ...player,
-    chips: player.chips - actual,
-    bet: actual,
-    totalBet: actual,
-    allIn: remainingChips === 0,
-  };
-}
-
-function runOut(state) {
-  //resolves a state where everyone has gone all in or folded
-  let current = { ...state, players: state.players.map((p) => ({ ...p, bet: 0 })) };
-
-  const needed = 5 - current.communityCards.length;
-  if (needed > 0) {
-    const dealt = deal(current.deck, needed);
-    current = {
-      ...current,
-      deck: dealt.remaining,
-      communityCards: [...current.communityCards, ...dealt.cards],
-      phase: "river",
-    };
-  }
-  return advancePhase(current);
 }
 
 export function nextActiveIndex(players, fromIndex, steps = 1) {
@@ -248,7 +251,7 @@ export function startHand(state) {
   const activePlayers = state.players.filter((p) => p.chips > 0);
   if (activePlayers.length < 2) {
     throw new Error(
-      "Game Over: Not enough players with chips to start a hand.",
+      "Game Over: Not enough players with chips to start a hand."
     );
   }
 
@@ -289,17 +292,17 @@ export function startHand(state) {
     bigBlindIndex = nextActiveIndex(players, smallBlindIndex);
   }
 
-  const firstToAct = nextActiveIndex(players, bigBlindIndex); //index after the big blind
-
   players[smallBlindIndex] = postBlind(
     players[smallBlindIndex],
-    state.smallBlind,
+    state.smallBlind
   );
   players[bigBlindIndex] = postBlind(players[bigBlindIndex], state.bigBlind);
 
   const newpot = players[smallBlindIndex].bet + players[bigBlindIndex].bet;
 
-  return {
+  const firstToAct = nextActiveIndex(players, bigBlindIndex); //index after the big blind
+
+  const newState = {
     ...state,
     phase: "preflop",
     handNumber: state.handNumber + 1,
@@ -319,6 +322,12 @@ export function startHand(state) {
     winners: null,
     lastAction: null,
   };
+
+  if (firstToAct === null) {
+    return runOut(state);
+  }
+
+  return newState
 }
 
 export function advancePhase(state) {
@@ -332,13 +341,13 @@ export function advancePhase(state) {
       return startHand(state);
 
     case "flop": {
-      return dealStreet(state, "flop")
+      return dealStreet(state, "flop");
     }
     case "turn": {
-      return dealStreet(state, "turn")
+      return dealStreet(state, "turn");
     }
     case "river": {
-      return dealStreet(state, "river")
+      return dealStreet(state, "river");
     }
     //TODO - check
     case "showdown": {
@@ -353,13 +362,11 @@ export function advancePhase(state) {
       for (const pot of sidePots) {
         //the first group in ranked_hands where at least one of the eligible players for this pot is in that group
         const eligible = ranked_hands.find((group) =>
-          group.some((entry) =>
-            pot.eligiblePlayers.includes(entry.playerIndex),
-          ),
+          group.some((entry) => pot.eligiblePlayers.includes(entry.playerIndex))
         );
 
         const potWinners = eligible.filter((entry) =>
-          pot.eligiblePlayers.includes(entry.playerIndex),
+          pot.eligiblePlayers.includes(entry.playerIndex)
         ); //get the players who are in eligible and in the group
 
         const share = Math.floor(pot.amount / potWinners.length);
@@ -370,7 +377,7 @@ export function advancePhase(state) {
           const payout = i === 0 ? share + remainder : share;
 
           players = players.map((p, j) =>
-            j === entry.playerIndex ? { ...p, chips: p.chips + payout } : p,
+            j === entry.playerIndex ? { ...p, chips: p.chips + payout } : p
           );
 
           winners.push({
@@ -386,7 +393,7 @@ export function advancePhase(state) {
         players,
         phase: "showdown",
         pot: 0,
-        sidePots: [],
+        sidePots,
         winners,
       };
     }
@@ -397,11 +404,9 @@ export function advancePhase(state) {
 
 export function advanceAction(state) {
   //advances action to the next player; also checks if betting is complete and advances phase if so; returns a state
-  const activePlayers = state.players.filter(
-    (p) => !p.folded && p.chips > 0,
-  );
+  const activePlayers = state.players.filter((p) => !p.folded && p.chips > 0);
   const contestants = state.players.filter(
-    (p) => !p.folded && p.chips + p.bet > 0,
+    (p) => !p.folded && p.chips + p.bet > 0
   );
 
   const bigBlindPending =
@@ -409,34 +414,35 @@ export function advanceAction(state) {
     !state.bigBlindActed &&
     state.activeIndex === state.bigBlindIndex;
   const allActed = state.players.every(
-    (p, i) =>
-      p.folded ||
-      p.chips === 0 ||
-      state.actedThisRound.includes(i),
+    (p, i) => p.folded || p.chips === 0 || state.actedThisRound.includes(i)
   );
   const bettingComplete =
     !bigBlindPending &&
     activePlayers.every((p) => p.bet === state.currentBet) &&
     allActed;
-  
+
   if (!bettingComplete) {
     const nextIndex = nextActiveIndex(state.players, state.activeIndex);
     if (nextIndex !== null) {
-      return {...state, activeIndex: nextIndex};
+      return {
+        ...state,
+        activeIndex: nextIndex,
+        sidePots: calculateSidePots(state.players),
+      };
     }
   }
 
   if (activePlayers.length <= 1 && contestants.length > 1) {
-    return runOut(state)
+    return runOut(state);
   }
 
-  return advancePhase(state)
+  return advancePhase(state);
 }
 
 export function fold(state, playerIndex) {
   //folds the given player and checks if all but one has folded; returns a state
   const players = state.players.map((p, i) =>
-    i === playerIndex ? { ...p, folded: true } : p,
+    i === playerIndex ? { ...p, folded: true } : p
   );
   const action = { playerIndex, type: "fold", amount: 0 };
   const newState = {
@@ -470,7 +476,7 @@ export function call(state, playerIndex) {
           totalBet: p.totalBet + actual,
           allIn: isAllIn,
         }
-      : p,
+      : p
   );
 
   const action = { playerIndex, type: "call", amount: actual };
@@ -504,7 +510,7 @@ export function raise(state, playerIndex, amount) {
           totalBet: p.totalBet + raiseBy,
           allIn: isAllIn,
         }
-      : p,
+      : p
   );
 
   const action = { playerIndex, type: "raise", amount: actual };
@@ -561,10 +567,10 @@ export function getLegalActions(state, playerIndex) {
   //returns the actions possible by the given player; {bool bool, bool, bool, number, number}
   const player = state.players[playerIndex];
 
-  const canCheck = state.currentBet === player.bet;
-  const canCall = state.currentBet !== player.bet && player.chips > 0;
-  const canRaise = player.chips > state.currentBet - player.bet;
-  const canFold = !player.folded && !player.allIn;
+  const canCheck = state.currentBet === player.bet && state.phase !== "showdown";
+  const canCall = state.currentBet !== player.bet && player.chips > 0 && state.phase !== "showdown";
+  const canRaise = player.chips > state.currentBet - player.bet && state.phase !== "showdown";
+  const canFold = !player.folded && !player.allIn && state.phase !== "showdown";
 
   return {
     canCheck,

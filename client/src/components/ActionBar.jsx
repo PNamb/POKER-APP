@@ -13,7 +13,7 @@ export default function ActionBar({
   style,
 }) {
   const [raiseAmount, setRaiseAmount] = useState(
-    legalActions?.minRaiseAmount ?? 0,
+    legalActions?.minRaiseAmount ?? 0
   );
   const { canCheck, canCall, canRaise, canFold, callAmount, minRaiseAmount } =
     legalActions ?? {};
@@ -77,21 +77,24 @@ export default function ActionBar({
 
   const renderRaiseSlider = () => {
     //raise slider
-    if (!canRaise) return null;
+    const sliderMax = Math.max(maxRaise, 0)
+    const sliderMin = Math.min(minRaiseAmount, sliderMax)
+    const isDisabled = isRaiseDisabled || sliderMax <= 0
     return (
       <View>
-        <Text style={styles.raiseLabel}>
+        <Text style={[styles.raiseLabel, isDisabled && styles.dimmed]}>
           RAISE: {raiseAmount.toLocaleString()}
         </Text>
         <Slider
-          minimumValue={minRaiseAmount}
-          maximumValue={maxRaise}
+          minimumValue={sliderMin}
+          maximumValue={sliderMax}
           step={1}
-          value={raiseAmount}
+          value={Math.min(raiseAmount, sliderMax)}
           onValueChange={setRaiseAmount}
           minimumTrackTintColor="#f0c040"
           maximumTrackTintColor="#444"
           thumbTintColor="#f0c040"
+          disabled = {isDisabled}
         />
       </View>
     );

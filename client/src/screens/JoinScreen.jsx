@@ -60,8 +60,7 @@ export default function JoinScreen() {
       </TouchableOpacity>
 
       <View style={styles.content}>
-        <Text style={styles.title}>Join Game</Text>
-        <Text style={styles.subTitle}>Enter Code</Text>
+        <Text style={styles.title}>Enter Code</Text>        
 
         <TextInput
           style={styles.input}
@@ -72,7 +71,7 @@ export default function JoinScreen() {
           autoCapitalize="characters"
           autoCorrect={false}
           maxLength={CODE_LENGTH}
-          autoFocus = {true}
+          autoFocus={true}
         />
         {error && <Text style={styles.error}>{error}</Text>}
 

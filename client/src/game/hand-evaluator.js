@@ -37,7 +37,7 @@ function eval5(cards) {
 
   const groups = Object.entries(count)
     .sort(
-      ([rankA, countA], [rankB, countB]) => countB - countA || rankB - rankA,
+      ([rankA, countA], [rankB, countB]) => countB - countA || rankB - rankA
     )
     .map(([rank]) => Number(rank)); /*sorts cards
     by frequency, then rank*/

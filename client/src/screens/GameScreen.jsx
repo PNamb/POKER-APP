@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useGameState } from "../hooks/useGameState";
-import { useSoundEffects } from "../hooks/useSoundEffects"
+import { useSoundEffects } from "../hooks/useSoundEffects";
 import CommunityCards from "../components/CommunityCards";
 import PotDisplay from "../components/PotDisplay";
 import PlayerSeat from "../components/PlayerSeat";
@@ -24,6 +24,9 @@ export default function GameScreen() {
   const isHost = params.isHost === "true";
   const name = params.name ?? "You";
 
+  const startingChips = Number(params.startingChips) || 500;
+  const bigBlind = Number(params.bigBlind) || 20;
+
   const {
     state,
     localPlayerIndex,
@@ -34,7 +37,14 @@ export default function GameScreen() {
     onCall,
     onRaise,
     startNextHand,
-  } = useGameState({ mode, numBots, roomCode, playerName: name });
+  } = useGameState({
+    mode,
+    numBots,
+    roomCode,
+    playerName: name,
+    startingChips,
+    bigBlind,
+  });
   useSoundEffects(state);
 
   const handleLeave = () => {
@@ -82,6 +92,16 @@ export default function GameScreen() {
     return "active";
   };
 
+  const aggregatedWinners = state.winners?.reduce((acc, w) => {
+    const existing = acc.find((a) => a.playerIndex === w.playerIndex);
+    if (existing) {
+      existing.amount += w.amount;
+    } else {
+      acc.push({ ...w });
+    }
+    return acc;
+  }, []);
+
   const renderOpponent = (player) => {
     const playerIndex = state.players.indexOf(player);
     const isTurn = state.activeIndex === playerIndex;
@@ -126,9 +146,9 @@ export default function GameScreen() {
       {state.phase === "showdown" && (
         <View style={styles.showdownBanner}>
           <Text style={styles.showdownText}>
-            {state.winners
+            {aggregatedWinners
               ?.map(
-                (w) => `${state.players[w.playerIndex].name} wins ${w.amount}`,
+                (w) => `${state.players[w.playerIndex].name} wins ${w.amount}`
               )
               .join(", ")}
           </Text>
@@ -172,7 +192,7 @@ export default function GameScreen() {
         onRaise={onRaise}
         maxRaise={localPlayer.chips}
         isTurn={isLocalPlayerTurn}
-        style = {{paddingBottom: insets.bottom + Spacing.md}}
+        style={{ paddingBottom: insets.bottom + Spacing.md }}
       />
     </View>
   );

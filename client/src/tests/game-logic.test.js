@@ -261,7 +261,7 @@ describe("hand-evaluator.js", () => {
     const pairAcesKingKicker = [HAND_RANKS.PAIR, 12, 11, 9, 3];
     const pairAcesQueenKicker = [HAND_RANKS.PAIR, 12, 10, 9, 3];
     expect(
-      compareScores(pairAcesKingKicker, pairAcesQueenKicker),
+      compareScores(pairAcesKingKicker, pairAcesQueenKicker)
     ).toBeGreaterThan(0);
   });
 
@@ -393,7 +393,7 @@ describe("game-engine.js - startHand", () => {
         smallBlind: 10,
         bigBlind: 20,
         dealerIndex: 0,
-      }),
+      })
     );
     const sbPlayer = state.players.find((p) => p.totalBet === 10);
     const bbPlayer = state.players.find((p) => p.totalBet === 20);
@@ -433,7 +433,7 @@ describe("game-engine.js - basic actions (fold/check/call/raise)", () => {
         smallBlind: 10,
         bigBlind: 20,
         dealerIndex: 0,
-      }),
+      })
     );
   }
 
@@ -453,7 +453,7 @@ describe("game-engine.js - basic actions (fold/check/call/raise)", () => {
   test("validate rejects check when there's a bet to call", () => {
     const state = freshPreflop();
     expect(() =>
-      applyAction(state, state.activeIndex, { type: "check" }),
+      applyAction(state, state.activeIndex, { type: "check" })
     ).toThrow();
   });
 
@@ -497,7 +497,7 @@ describe("game-engine.js - basic actions (fold/check/call/raise)", () => {
     let state = freshPreflop();
     state = { ...state, currentBet: state.players[state.activeIndex].bet };
     expect(() =>
-      applyAction(state, state.activeIndex, { type: "call" }),
+      applyAction(state, state.activeIndex, { type: "call" })
     ).toThrow();
   });
 
@@ -522,10 +522,10 @@ describe("game-engine.js - basic actions (fold/check/call/raise)", () => {
     let state = freshPreflop();
     const raiser = state.activeIndex;
     expect(() =>
-      applyAction(state, raiser, { type: "raise", amount: 0 }),
+      applyAction(state, raiser, { type: "raise", amount: 0 })
     ).toThrow();
     expect(() =>
-      applyAction(state, raiser, { type: "raise", amount: -10 }),
+      applyAction(state, raiser, { type: "raise", amount: -10 })
     ).toThrow();
   });
 
@@ -551,7 +551,7 @@ describe("game-engine.js - basic actions (fold/check/call/raise)", () => {
       state = applyAction(
         state,
         state.activeIndex,
-        canCheck ? { type: "check" } : { type: "call" },
+        canCheck ? { type: "check" } : { type: "call" }
       );
     }
     expect(state.phase).toBe("flop");
@@ -565,7 +565,7 @@ describe("game-engine.js - basic actions (fold/check/call/raise)", () => {
 describe("game-engine.js - getLegalActions", () => {
   test("first-to-act preflop can call or raise, cannot check", () => {
     const state = startHand(
-      createGame(["A", "B", "C"], { smallBlind: 10, bigBlind: 20 }),
+      createGame(["A", "B", "C"], { smallBlind: 10, bigBlind: 20 })
     );
     const legal = getLegalActions(state, state.activeIndex);
     expect(legal.canCheck).toBe(false);
@@ -575,7 +575,7 @@ describe("game-engine.js - getLegalActions", () => {
 
   test("big blind can check if no one raised (bet already equals currentBet)", () => {
     let state = startHand(
-      createGame(["A", "B", "C"], { smallBlind: 10, bigBlind: 20 }),
+      createGame(["A", "B", "C"], { smallBlind: 10, bigBlind: 20 })
     );
     const legal = getLegalActions(state, state.bigBlindIndex);
     expect(legal.canCheck).toBe(true);
@@ -591,7 +591,7 @@ describe("game-engine.js - getLegalActions", () => {
 
   test("canRaise is false when player doesn't have enough for a minimum raise", () => {
     let state = startHand(
-      createGame(["A", "B", "C"], { smallBlind: 10, bigBlind: 20 }),
+      createGame(["A", "B", "C"], { smallBlind: 10, bigBlind: 20 })
     );
     state.players[state.activeIndex].chips = 5;
     const legal = getLegalActions(state, state.activeIndex);
@@ -621,7 +621,7 @@ describe("game-engine.js - advancePhase / full hand flow", () => {
 
   test.skip("a full hand of check/call action reaches showdown with community cards dealt", () => {
     let state = startHand(
-      createGame(["A", "B", "C"], { smallBlind: 10, bigBlind: 20 }),
+      createGame(["A", "B", "C"], { smallBlind: 10, bigBlind: 20 })
     );
     state = playToShowdownAllChecksCalls(state);
     expect(state.phase).toBe("showdown");
@@ -634,7 +634,7 @@ describe("game-engine.js - advancePhase / full hand flow", () => {
         smallBlind: 10,
         bigBlind: 20,
         startingChips: 500,
-      }),
+      })
     );
     const chipsBefore = totalChipsAndPot(state);
     state = playToShowdownAllChecksCalls(state);
@@ -644,7 +644,7 @@ describe("game-engine.js - advancePhase / full hand flow", () => {
 
   test.skip("showdown assigns winners with a handName and a positive amount", () => {
     let state = startHand(
-      createGame(["A", "B", "C"], { smallBlind: 10, bigBlind: 20 }),
+      createGame(["A", "B", "C"], { smallBlind: 10, bigBlind: 20 })
     );
     state = playToShowdownAllChecksCalls(state);
     expect(state.winners.length).toBeGreaterThan(0);
@@ -688,7 +688,7 @@ describe("bot-ai.js", () => {
       state = applyAction(
         state,
         state.activeIndex,
-        canCheck ? { type: "check" } : { type: "call" },
+        canCheck ? { type: "check" } : { type: "call" }
       );
     }
     const botIndex = state.activeIndex;

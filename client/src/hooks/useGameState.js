@@ -11,7 +11,14 @@ const BOT_ACTION_DELAY = 200; //ms
 const REVEAL_DELAY = 100; //ms
 const ACTION_SETTLE_DELAY = 150; //ms
 
-export function useGameState({ mode, numBots, roomCode, playerName }) {
+export function useGameState({
+  mode,
+  numBots,
+  roomCode,
+  playerName,
+  startingChips = 500,
+  bigBlind = 20,
+}) {
   const [state, setState] = useState(null);
   const [localPlayerIndex, setLocalPlayerIndex] = useState(0);
   const botTimeoutRef = useRef(null);
@@ -23,7 +30,7 @@ export function useGameState({ mode, numBots, roomCode, playerName }) {
       clearTimeout(botTimeoutRef.current);
       botTimeoutRef.current = null;
     }
-    
+
     const phaseChanged = prevState && nextState.phase !== prevState.phase;
 
     if (!phaseChanged) {
@@ -33,7 +40,7 @@ export function useGameState({ mode, numBots, roomCode, playerName }) {
 
     const actingIndex = nextState.lastAction?.playerIndex;
     const actingPlayerNext = nextState.players.find(
-      (_, i) => i === actingIndex,
+      (_, i) => i === actingIndex
     );
 
     const frozenPlayers = prevState.players.map((p, i) => {
@@ -48,7 +55,12 @@ export function useGameState({ mode, numBots, roomCode, playerName }) {
       };
     });
 
-    setState({ ...prevState, players: frozenPlayers, pot: prevState.pot, lastAction: nextState.lastAction });
+    setState({
+      ...prevState,
+      players: frozenPlayers,
+      pot: prevState.pot,
+      lastAction: nextState.lastAction,
+    });
     setIsTransitioning(true);
 
     transitionRef.current = setTimeout(() => {
@@ -59,7 +71,11 @@ export function useGameState({ mode, numBots, roomCode, playerName }) {
 
   useEffect(() => {
     if (mode === "bot") {
-      const game = createBotGame(playerName || "You", numBots); //3 bots by default
+      const game = createBotGame(playerName || "You", numBots, {
+        startingChips,
+        bigBlind,
+        smallBlind: bigBlind ? Math.floor(bigBlind / 2) : undefined,
+      }); //3 bots by default
       setState(advancePhase({ ...game, phase: "waiting" })); //start first hand
       setLocalPlayerIndex(0);
     }
@@ -86,24 +102,24 @@ export function useGameState({ mode, numBots, roomCode, playerName }) {
         //TODO - send action to host via socket-client.js
       }
     },
-    [mode, state, localPlayerIndex, commitState],
+    [mode, state, localPlayerIndex, commitState]
   );
 
   const onFold = useCallback(
     () => performAction({ type: "fold" }),
-    [performAction],
+    [performAction]
   );
   const onCheck = useCallback(
     () => performAction({ type: "check" }),
-    [performAction],
+    [performAction]
   );
   const onCall = useCallback(
     () => performAction({ type: "call" }),
-    [performAction],
+    [performAction]
   );
   const onRaise = useCallback(
     (amount) => performAction({ type: "raise", amount }),
-    [performAction],
+    [performAction]
   );
 
   useEffect(() => {

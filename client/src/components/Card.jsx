@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { cardRank, cardSuit } from "../game/deck";
-import {SUIT_PATHS, FACE_PATHS} from "@/assets/SVG-icons"
+import { SUIT_PATHS, FACE_PATHS } from "@/assets/SVG-icons";
 
 const RED_SUITS = ["hearts", "diamonds"];
 const FACE_RANKS = ["J", "Q", "K"];
@@ -181,13 +181,27 @@ export default function Card({ card, rank, suit, faceUp = true, width = 80 }) {
   };
 
   const renderCorner = (flipped) => (
-    <View style = {[flipped ? styles.cornerBot : styles.cornerTop, flipped && { transform: [{ rotate: "180deg" }] }]}>
-      <Text style = {[styles.cornerRank, {fontSize: cornerFontSize, lineHeight: cornerLineHeight, color: suitColor}]}>
+    <View
+      style={[
+        flipped ? styles.cornerBot : styles.cornerTop,
+        flipped && { transform: [{ rotate: "180deg" }] },
+      ]}
+    >
+      <Text
+        style={[
+          styles.cornerRank,
+          {
+            fontSize: cornerFontSize,
+            lineHeight: cornerLineHeight,
+            color: suitColor,
+          },
+        ]}
+      >
         {rankStr}
       </Text>
-      <SuitIcon suit = {suitStr} size = {cornerIconSize} color = {suitColor} />
+      <SuitIcon suit={suitStr} size={cornerIconSize} color={suitColor} />
     </View>
-  )
+  );
   return (
     //rendering everything
     <View style={[styles.card, { width, height, padding: padding }]}>

@@ -10,7 +10,7 @@ export default function PotDisplay({
     //render main pot
     return (
       <View style={styles.mainPot}>
-        <Text style={styles.label}>POT</Text>
+        <Text style={styles.label}>POTS</Text>
         <Text style={styles.amount}>{mainPot.toLocaleString()}</Text>
       </View>
     );
@@ -21,7 +21,7 @@ export default function PotDisplay({
     if (sidePots.length === 0) return null;
     return sidePots.map((pot, i) => (
       <View key={i} style={styles.sidePot}>
-        <Text style={styles.label}>SIDE POT {i + 1}</Text>
+        <Text style={styles.label}>POT {i + 1}</Text>
         <Text style={styles.amount}>{pot.amount.toLocaleString()}</Text>
       </View>
     ));

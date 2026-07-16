@@ -4,19 +4,27 @@ import { useRouter } from "expo-router";
 import { Colors, Spacing, Typography, Radius } from "@/constants/theme";
 import Svg, { Path } from "react-native-svg";
 import { useMusic } from "@/contexts/MusicContext";
-import { titleArt, cogArt, bookArt, soundOnArt, soundOffArt, profileArt} from "@/assets/SVG-icons"
+import {
+  titleArt,
+  cogArt,
+  bookArt,
+  soundOnArt,
+  soundOffArt,
+  profileArt,
+} from "@/assets/SVG-icons";
 
 function Art({ art, box, size = 35, color = "#ffffff", isStroke = false }) {
   return (
     <Svg width={size} height={size} viewBox={box}>
-      <Path 
-      d = {art} 
-      fill = {isStroke ? "none": color}
-      stroke = {isStroke ? color: "none"}
-      strokeWidth = {isStroke ? 2 : 0}
-      strokeLinecap = {isStroke ? "round" : undefined}
-      strokeLinejoin = {isStroke ? "round" : undefined}
-      fillRule = "evenodd" />
+      <Path
+        d={art}
+        fill={isStroke ? "none" : color}
+        stroke={isStroke ? color : "none"}
+        strokeWidth={isStroke ? 2 : 0}
+        strokeLinecap={isStroke ? "round" : undefined}
+        strokeLinejoin={isStroke ? "round" : undefined}
+        fillRule="evenodd"
+      />
     </Svg>
   );
 }
@@ -24,7 +32,7 @@ function Art({ art, box, size = 35, color = "#ffffff", isStroke = false }) {
 export default function HomeScreen() {
   //this is the title screen
   const router = useRouter(); //use to navigate to other screens
-  const {muted, toggleMute} = useMusic()
+  const { muted, toggleMute } = useMusic();
 
   const handleHost = () => {
     router.push({ pathname: "/lobby", params: { isHost: true } });
@@ -33,6 +41,10 @@ export default function HomeScreen() {
   const handleJoin = () => {
     router.push("/join");
   };
+
+  const handleGuide = () => {
+    router.push("/guide")
+  }
 
   //TEMP DEV ONLY
   const handleUITest = () => {
@@ -44,7 +56,12 @@ export default function HomeScreen() {
       <View style={styles.titleBlock}>
         <Text style={styles.title}>POKER</Text>
         <Text style={styles.subTitle}>TEXAS HOLD'EM</Text>
-        <Art art = {titleArt} box = {"0 0 58.036 58.036"} size = {350} color = {"#e0e2e0"} />
+        <Art
+          art={titleArt}
+          box={"0 0 58.036 58.036"}
+          size={350}
+          color={"#e0e2e0"}
+        />
       </View>
 
       <View style={styles.actions}>
@@ -62,22 +79,52 @@ export default function HomeScreen() {
           <Text style={styles.buttonText}>JOIN</Text>
         </TouchableOpacity>
 
-        <View style = {styles.settingsButtonRow}>
-
-          <TouchableOpacity style = {[styles.settingsButton, {backgroundColor: "#89d7f3"}, {borderColor: "#89b3f3"}]}>
-            <Art art = {cogArt} box = {"0 0 64 64"} size = {40}/>
+        <View style={styles.settingsButtonRow}>
+          <TouchableOpacity
+            style={[
+              styles.settingsButton,
+              { backgroundColor: "#89d7f3" },
+              { borderColor: "#89b3f3" },
+            ]}
+          >
+            <Art art={cogArt} box={"0 0 64 64"} size={40} />
           </TouchableOpacity>
 
-          <TouchableOpacity style = {[styles.settingsButton, {backgroundColor: "#e67f11"}, {borderColor: "#e66a11"}]} onPress = {toggleMute}>
-            <Art art = {muted? soundOffArt : soundOnArt} box = {"0 0 24 24"} size = {40} isStroke = {true} />
+          <TouchableOpacity
+            style={[
+              styles.settingsButton,
+              { backgroundColor: "#e67f11" },
+              { borderColor: "#e66a11" },
+            ]}
+            onPress={toggleMute}
+          >
+            <Art
+              art={muted ? soundOffArt : soundOnArt}
+              box={"0 0 24 24"}
+              size={40}
+              isStroke={true}
+            />
           </TouchableOpacity>
 
-          <TouchableOpacity style = {[styles.settingsButton, {backgroundColor: "#0ce00cb7"}, {borderColor: "#107b10"}]}>
-            <Art art = {profileArt} box = {"0 0 24 24"} size = {40} />
+          <TouchableOpacity
+            style={[
+              styles.settingsButton,
+              { backgroundColor: "#0ce00cb7" },
+              { borderColor: "#107b10" },
+            ]}
+          >
+            <Art art={profileArt} box={"0 0 24 24"} size={40} />
           </TouchableOpacity>
 
-          <TouchableOpacity style = {[styles.settingsButton, {backgroundColor: "#de5050"}, {borderColor: "#ef2f2f"}]}>
-            <Art art = {bookArt} box = {"0 0 24 24"} size = {40} />
+          <TouchableOpacity
+            style={[
+              styles.settingsButton,
+              { backgroundColor: "#de5050" },
+              { borderColor: "#ef2f2f" },
+            ]}
+            onPress = {handleGuide}
+          >
+            <Art art={bookArt} box={"0 0 24 24"} size={40} />
           </TouchableOpacity>
         </View>
 
@@ -111,7 +158,7 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
     fontSize: Typography.size.body,
     textAlign: "center",
-    alignSelf: "stretch"
+    alignSelf: "stretch",
   },
   actions: {
     width: "80%",
@@ -153,7 +200,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.size.label,
     color: Colors.text.muted,
     textAlign: "center",
-    alignSelf: "stretch"
+    alignSelf: "stretch",
   },
   settingsButtonRow: {
     width: "100%",

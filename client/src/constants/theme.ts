@@ -41,7 +41,7 @@ export const Colors = {
     thumb: "#f0c040",
   },
   item: {
-    chips: "#ac2525"
+    chips: "#ac2525",
   },
 } as const;
 

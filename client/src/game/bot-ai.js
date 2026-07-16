@@ -29,11 +29,11 @@ function estimateEquity(holeCards, communityCards, numOpps, deck) {
 
     const botScore = evaluate([...holeCards, ...board]);
     const opponentScores = opponentHands.map((hand) =>
-      evaluate([...hand, ...board]),
+      evaluate([...hand, ...board])
     );
 
     const bestOpponent = opponentScores.reduce((best, curr) =>
-      compareScores(curr, best) > 0 ? curr : best,
+      compareScores(curr, best) > 0 ? curr : best
     ); //get the best score among the opponents
 
     let result = compareScores(botScore, bestOpponent);
@@ -66,7 +66,7 @@ function decideAction(state, playerIndex) {
     player.holeCards,
     state.communityCards,
     numOpps,
-    remainingDeck(state),
+    remainingDeck(state)
   );
   const potOdds = (state, playerIndex) => {
     //returns a number representing the pot odds of the bots hand (lower is better)

@@ -24,7 +24,7 @@ function generateRoomCode() {
   return code;
 }
 
-function Art({ art, box, size = 27, color = "#ac2525" }) {
+function Art({ art, box, size = 35, color = "#ac2525" }) {
   return (
     <Svg width={size} height={size} viewBox={box}>
       <Path d={art} fill={color} fillRule="evenodd" />
@@ -33,7 +33,7 @@ function Art({ art, box, size = 27, color = "#ac2525" }) {
 }
 
 export default function LobbyScreen() {
-  //this is the waiting room
+  //this is the name entering screen and waiting room
   const router = useRouter(); //for navigating
   const params = useLocalSearchParams(); //for getting "router.push(...)" information from other screens
 
@@ -45,7 +45,7 @@ export default function LobbyScreen() {
   const [playerName, setPlayerName] = useState("");
   const [nameSubmitted, setNameSubmitted] = useState(false);
   const [roomCode] = useState(() =>
-    isHost ? generateRoomCode() : joinedRoomCode,
+    isHost ? generateRoomCode() : joinedRoomCode
   );
 
   //TODO - replace with real player list from socket-client.js once networking exists
@@ -53,6 +53,9 @@ export default function LobbyScreen() {
 
   const [bots, setBots] = useState([]);
   const [nextBotNumber, setNextBotNumber] = useState(1);
+
+  const [chips, setChips] = useState("500"); //new
+  const [blind, setBlind] = useState("20"); //new
 
   useEffect(() => {
     //once name is submitted, add ourselves to the player list
@@ -64,11 +67,11 @@ export default function LobbyScreen() {
   const BOT_NAME_PATTERN = /^bot\s*\d+$/i;
 
   const handleSubmitName = () => {
-    const trimmed = playerName.trim()
+    const trimmed = playerName.trim();
     if (trimmed.length === 0) return;
     if (BOT_NAME_PATTERN.test(trimmed)) {
-      setPlayerName("")
-      setError("Invalid name")
+      setPlayerName("");
+      setError("Invalid name");
       return;
     }
     setNameSubmitted(true);
@@ -79,24 +82,47 @@ export default function LobbyScreen() {
   };
 
   const handleAddBot = () => {
-    const bot = {id: `bot-${nextBotNumber}`, name: "Bot"}
-    setBots((prev) => [...prev, bot])
-    setNextBotNumber((n) => n + 1)
-  }
-
-  const handleRemoveBot = (botID) => {
-    setBots((prev) => prev.filter((b) => b.id !== botID))
-  }
-
-  const handleStartGame = () => {
-    if (isHost && players.length === 1) {
-      router.push({pathname: "/game", params: {mode: "bot", numBots: bots.length, name: playerName}})
-      return
-    }
-    router.push({ pathname: "/game", params: { mode: "online", roomCode, numBots: bots.length } });
+    const bot = { id: `bot-${nextBotNumber}`, name: "Bot" };
+    setBots((prev) => [...prev, bot]);
+    setNextBotNumber((n) => n + 1);
   };
 
-  const roster = [...players.map((p) => ({...p, isBot: false})), ...bots.map((b) => ({...b, isBot: true}))]
+  const handleRemoveBot = (botID) => {
+    setBots((prev) => prev.filter((b) => b.id !== botID));
+  };
+
+  const handleStartGame = () => {
+    const startingChips = parseInt(chips, 10) || 500;
+    const bigBlind = parseInt(blind, 10) || 20;
+    if (isHost && players.length === 1) {
+      router.push({
+        pathname: "/game",
+        params: {
+          mode: "bot",
+          numBots: bots.length,
+          name: playerName,
+          startingChips,
+          bigBlind,
+        },
+      });
+      return;
+    }
+    router.push({
+      pathname: "/game",
+      params: {
+        mode: "online",
+        roomCode,
+        numBots: bots.length,
+        startingChips,
+        bigBlind,
+      },
+    });
+  };
+
+  const roster = [
+    ...players.map((p) => ({ ...p, isBot: false })),
+    ...bots.map((b) => ({ ...b, isBot: true })),
+  ];
 
   const renderPlayer = ({ item }) => {
     //render a single player
@@ -108,15 +134,36 @@ export default function LobbyScreen() {
         </Text>
         {item.isHost && (
           <>
-          <Art art = {chipArt} box = {"0 0 100 100"} />
-          <TextInput style = {styles.chipInput} placeholder = "------"></TextInput>
-          <Art art = {altChipArt} box = {"0 0 64 64"} color = {"#1a4a8a"} />
-          <TextInput style = {styles.blindInput} placeholder = "------"></TextInput>
+            <Art art={chipArt} box={"0 0 100 100"} />
+            <TextInput
+              style={[styles.input, { backgroundColor: Colors.item.chips }]}
+              placeholder="---"
+              value={chips}
+              onChangeText={setChips}
+              keyboardType="number-pad"
+              autoCorrect={false}
+            />
+
+            <Art art={altChipArt} box={"0 0 64 64"} color={"#1a4a8a"} />
+            <TextInput
+              style={[
+                styles.input,
+                { backgroundColor: Colors.background.cardBack },
+              ]}
+              placeholder="--"
+              value={blind}
+              onChangeText={setBlind}
+              keyboardType="number-pad"
+              autoCorrect={false}
+            />
           </>
         )}
         {item.isBot && isHost && (
-          <TouchableOpacity style = {[styles.removeBotButton, {backgroundColor: "#712c2c"}]} onPress = {() => handleRemoveBot(item.id)}>
-            <Text style = {styles.removeBotText}>✕</Text>
+          <TouchableOpacity
+            style={[styles.removeBotButton, { backgroundColor: "#712c2c" }]}
+            onPress={() => handleRemoveBot(item.id)}
+          >
+            <Text style={styles.removeBotText}>✕</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -124,13 +171,13 @@ export default function LobbyScreen() {
   };
 
   const renderAddBotButton = () => {
-    if (!isHost) return null
+    if (!isHost) return null;
     return (
-      <TouchableOpacity style = {styles.addBotButton} onPress = {handleAddBot}>
-        <Text style = {styles.addBotText}>+</Text>
+      <TouchableOpacity style={styles.addBotButton} onPress={handleAddBot}>
+        <Text style={styles.addBotText}>+</Text>
       </TouchableOpacity>
-    )
-  }
+    );
+  };
 
   if (!nameSubmitted) {
     //if we haven't submitted out name yet, render the input box
@@ -140,21 +187,21 @@ export default function LobbyScreen() {
           <Text style={styles.backText}>Back</Text>
         </TouchableOpacity>
         <View style={styles.content}>
-          <Text style={styles.title}>Host Game</Text>
-          <Text style={styles.subTitle}>Enter Name</Text>
+          <Text style={styles.title}>Enter Name</Text>
+          
           <TextInput
             style={styles.nameInput}
             value={playerName}
             onChangeText={(text) => {
               setPlayerName(text);
-              if (error) setError(null)
+              if (error) setError(null);
             }}
             placeholder="NAME"
             placeholderTextColor={Colors.text.muted}
             maxLength={12}
             autoFocus={true}
           />
-          
+
           <TouchableOpacity
             style={[
               styles.primaryButton,
@@ -169,7 +216,7 @@ export default function LobbyScreen() {
       </View>
     );
   }
-  
+
   return (
     //if we have submitted our name, render the room code, the current player list, and either a start button or waiting button
     <View style={styles.container}>
@@ -185,15 +232,12 @@ export default function LobbyScreen() {
         </View>
 
         <View style={styles.playerList}>
-          <Text style={styles.playerListLabel}>
-            {" "}
-            ({roster.length}) PLAYERS
-          </Text>
+          <Text style={styles.playerListLabel}> ({roster.length}) PLAYERS</Text>
           <FlatList
             data={roster}
             keyExtractor={(item) => item.id}
             renderItem={renderPlayer}
-            ListFooterComponent = {renderAddBotButton}
+            ListFooterComponent={renderAddBotButton}
           />
         </View>
         {isHost ? (
@@ -297,36 +341,26 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
     fontSize: Typography.size.body,
   },
-  chipInput: {
+  input: {
     width: "28%",
     height: "90%",
     textAlign: "center",
     borderWidth: 0.5,
     borderRadius: Radius.badge,
-    backgroundColor: Colors.item.chips,
-    
-    placeholderTextColor: Colors.text.muted
-  },
-  blindInput: {
-    width: "28%",
-    height: "90%",
-    textAlign: "center",
-    borderWidth: 0.5,
-    borderRadius: Radius.badge,
-    backgroundColor: Colors.background.cardBack,
-    placeholderTextColor: Colors.text.muted
+
+    placeholderTextColor: Colors.text.muted,
   },
   removeBotButton: {
     alignItems: "flex-end",
     borderRadius: 5,
     borderWidth: 1,
     paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs
+    paddingVertical: Spacing.xs,
   },
   removeBotText: {
     color: Colors.border.danger,
     fontSize: Typography.size.body,
-    fontWeight: Typography.weight.semiBold
+    fontWeight: Typography.weight.semiBold,
   },
   addBotButton: {
     borderWidth: 0.5,
@@ -336,11 +370,11 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
     alignItems: "center",
-    marginBottom: Spacing.xs
+    marginBottom: Spacing.xs,
   },
   addBotText: {
     color: Colors.text.secondary,
-    fontSize: Typography.size.body
+    fontSize: Typography.size.body,
   },
   primaryButton: {
     width: "70%",

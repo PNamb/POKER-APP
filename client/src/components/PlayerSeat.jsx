@@ -56,7 +56,7 @@ export default function PlayerSeat({
       <View style={[styles.infoBar, isTurn && styles.infoBarActive]}>
         <View style={styles.nameRow}>
           <Text style={styles.name} numberOfLines={1}>
-            {isFirstToAct ? "(A) " : ""}
+            {isFirstToAct ? "(D) " : ""}
             {player.name}
             {player.isBot ? "🤖" : ""}
           </Text>

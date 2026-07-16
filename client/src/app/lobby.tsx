@@ -1,6 +1,6 @@
 import React from "react";
 import LobbyScreen from "@/screens/LobbyScreen";
 
-export default function Index() {
+export default function Lobby() {
   return <LobbyScreen />;
 }
