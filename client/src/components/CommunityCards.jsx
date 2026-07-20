@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import Card from "./Card";
+import { Radius, Spacing, Typography } from "@/constants/theme";
 
 const STREET_LABELS = {
   0: "",
@@ -41,22 +42,22 @@ export default function CommunityCards({ cards = [], cardWidth = 70, style }) {
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
-    gap: 8,
+    gap: Spacing.md,
   },
   row: {
     flexDirection: "row",
-    gap: 6,
+    gap: Spacing.sm,
   },
   label: {
     color: "#550000",
-    fontSize: 11,
+    fontSize: Typography.size.cornerSuit,
     fontWeight: "600",
   },
   placeHolder: {
     borderColor: "#444",
     borderStyle: "dashed",
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: Radius.card,
     opacity: 0.4,
   },
 });

@@ -6,6 +6,7 @@ import {
   getLegalActions,
 } from "../game/game-engine";
 import { botAction } from "../game/bot-ai";
+import { useMusic } from "@/contexts/MusicContext";
 
 const BOT_ACTION_DELAY = 200; //ms
 const REVEAL_DELAY = 100; //ms
@@ -19,6 +20,7 @@ export function useGameState({
   startingChips = 500,
   bigBlind = 20,
 }) {
+  const { botDifficulty } = useMusic()
   const [state, setState] = useState(null);
   const [localPlayerIndex, setLocalPlayerIndex] = useState(0);
   const botTimeoutRef = useRef(null);
@@ -130,13 +132,13 @@ export function useGameState({
     if (!activePlayer?.isBot) return;
 
     botTimeoutRef.current = setTimeout(() => {
-      const action = botAction(state, state.activeIndex);
+      const action = botAction(state, state.activeIndex, botDifficulty);
       const next = applyAction(state, state.activeIndex, action);
       commitState(state, next);
     }, BOT_ACTION_DELAY);
 
     return () => clearTimeout(botTimeoutRef.current);
-  }, [mode, state, isTransitioning, commitState]);
+  }, [mode, state, isTransitioning, commitState, botDifficulty]);
 
   const legalActions = state ? getLegalActions(state, localPlayerIndex) : null;
   const isLocalPlayerTurn =

@@ -20,8 +20,9 @@ function LayoutInner() {
         <Stack.Screen name="index" />
         <Stack.Screen name="join" />
         <Stack.Screen name="lobby" />
-        <Stack.Screen name="game" />
+        <Stack.Screen name="temp" />
         <Stack.Screen name = "guide" />
+        <Stack.Screen name = "settings" />
       </Stack>
     </>
   );

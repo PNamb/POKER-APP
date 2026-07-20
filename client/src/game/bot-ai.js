@@ -4,6 +4,13 @@ import { compareScores, evaluate } from "./hand-evaluator";
 
 const simulations = 500; //number of monte carlo simulations
 
+const DIFFICULTY_THRESHOLDS = {
+  easy: {RAISE_THRESHOLD: 0.8, CALL_THRESHOLD: 0.55, BLUFF_CHANCE: 0.1},
+  medium: {RAISE_THRESHOLD: 0.65, CALL_THRESHOLD: 0.4, BLUFF_CHANCE: 0.25},
+  hard: {RAISE_THRESHOLD: 0.55, CALL_THRESHOLD: 0.3, BLUFF_CHANCE: 0.35},
+  random: {RAISE_THRESHOLD: Math.random(), CALL_THRESHOLD: Math.random(), BLUFF_CHANCE: Math.random()}
+}
+
 function estimateEquity(holeCards, communityCards, numOpps, deck) {
   //returns a number between 0 and 1, representing the equity during the phase
   let wins = 0;
@@ -44,7 +51,7 @@ function estimateEquity(holeCards, communityCards, numOpps, deck) {
   return (wins + ties * 0.5) / simulations; //returns at least 0; at most 1
 }
 
-function decideAction(state, playerIndex) {
+function decideAction(state, playerIndex, difficulty = "medium") {
   //decides on what to do; returns an object of {type} or {type, amount} if the decides to raise
   const player = state.players[playerIndex];
 
@@ -76,9 +83,7 @@ function decideAction(state, playerIndex) {
     return callAmount === 0 ? 0 : callAmount / (state.pot + callAmount);
   };
 
-  const RAISE_THRESHOLD = 0.65; //minumum equity threshold to raise
-  const CALL_THRESHOLD = 0.4; //minumum equity threshold to call
-  const BLUFF_CHANCE = 0.25; //chance to raise no matter what (out of 1)
+  const {RAISE_THRESHOLD, CALL_THRESHOLD, BLUFF_CHANCE} = DIFFICULTY_THRESHOLDS[difficulty] ?? DIFFICULTY_THRESHOLDS.medium
 
   const isBluffing = Math.random() < BLUFF_CHANCE;
 

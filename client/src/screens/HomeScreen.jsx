@@ -46,6 +46,10 @@ export default function HomeScreen() {
     router.push("/guide")
   }
 
+  const handleSettings = () => {
+    router.push("/settings")
+  }
+
   //TEMP DEV ONLY
   const handleUITest = () => {
     router.push("/ui_test");
@@ -86,6 +90,7 @@ export default function HomeScreen() {
               { backgroundColor: "#89d7f3" },
               { borderColor: "#89b3f3" },
             ]}
+            onPress = {handleSettings}
           >
             <Art art={cogArt} box={"0 0 64 64"} size={40} />
           </TouchableOpacity>

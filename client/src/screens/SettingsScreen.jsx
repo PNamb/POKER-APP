@@ -1,0 +1,227 @@
+import React from "react";
+import { useRouter } from "expo-router"
+import { Colors, Spacing, Typography, Radius } from "@/constants/theme";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import Slider from "@react-native-community/slider";
+import { useMusic } from "@/contexts/MusicContext";
+
+function Section({title, children}) {
+  return (
+    <View style = {styles.section}>
+      <Text style = {styles.sectionTitle}>{title}</Text>
+      <View style = {styles.sectionBody}>{children}</View>
+    </View>
+  )
+}
+
+function SliderRow({label, value, onChange}) {
+  return (
+    <View style = {styles.row}>
+      <Text style = {styles.rowLabel}>{label}</Text>
+      <Slider 
+        style = {styles.slider}
+        minimumValue = {0}
+        maximumValue = {1}
+        step = {0.01}
+        value = {value}
+        onValueChange = {onChange}
+        minimumTrackTintColor = {Colors.background.settings}
+        maximumTrackTintColor = {Colors.border.medium}
+        thumbTintColor = {Colors.background.settings}
+      />
+      <Text style = {styles.rowValue}>{Math.round(value * 100)}%</Text>
+    </View>
+  )
+}
+
+function ToggleRow({label, value, onChange}) {
+  return (
+    <TouchableOpacity style = {styles.row} onPress = {() => onChange(!value)}>
+      <Text style = {styles.rowLabel}>{label}</Text>
+      <View style = {[styles.toggle, value && styles.toggleOn]}>
+        <View style = {[styles.toggleKnob, value && styles.toggleKnobOn]} />
+      </View>
+    </TouchableOpacity>
+  )
+}
+
+function DifficultyRow({label, value, onChange}) {
+  const OPTIONS = [
+    {key: "easy", label: "Easy"},
+    {key: "medium", label: "Medium"},
+    {key: "hard", label: "Hard"},
+    {key: "random", label: "Random"}
+  ]
+
+  return (
+    <View style = {styles.row}>
+      <Text style = {styles.rowLabel}>{label}</Text>
+      <View style = {styles.segmentedControl}>
+        {OPTIONS.map((o) => (
+          <TouchableOpacity
+            key = {o.key}
+            style = {[styles.segment, value === o.key && styles.segmentActive]}
+            onPress = {() => onChange(o.key)}
+          >
+            <Text style = {[styles.segmentText, value === o.key && styles.segmentTextActive]}>{o.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  )
+}
+
+//TODO - add setting for bot difficulty, fold/all-in confirm, haptics
+export default function SettingsScreen() {
+    const router = useRouter()
+    const {
+      musicVolume,
+      setMusicVolume,
+      sfxVolume,
+      setSfxVolume,
+      fourColorDeck,
+      setFourColorDeck,
+      botDifficulty,
+      setBotDifficulty
+    } = useMusic()
+
+    const handleBack = () => {
+        //for back button
+        router.back();
+    };
+
+    return (
+        <View style = {styles.container}>
+            {/* <TouchableOpacity style = {styles.backButton} onPress = {handleBack}>
+                <Text style = {styles.backText}>Back</Text>
+            </TouchableOpacity> */}
+
+            <Text style = {styles.pageTitle}>Settings</Text>
+
+            <Section title = "Audio">
+              <SliderRow label = "Music" value = {musicVolume} onChange = {setMusicVolume} />
+
+              <SliderRow label = "Sound Effects" value = {sfxVolume} onChange = {setSfxVolume} />
+            </Section>
+
+            <Section title = "Table">
+              <ToggleRow label = "Four Color Deck" value = {fourColorDeck} onChange = {setFourColorDeck} />
+            </Section>
+
+            <Section title = "Bots">
+              <DifficultyRow label = "Bot Difficulty" value = {botDifficulty} onChange = {setBotDifficulty} />
+            </Section>
+        </View>
+    )
+
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background.table,
+    padding: Spacing.xl
+  },
+  // backButton: {
+  //   alignSelf: "flex-start",
+  //   paddingVertical: Spacing.sm,
+  // },
+  // backText: {
+  //   color: Colors.text.secondary,
+  //   fontSize: Typography.size.body,
+  // },
+  pageTitle: {
+    color :Colors.background.settings,
+    fontSize: 30,
+    fontWeight: Typography.weight.semiBold,
+    marginBottom: Spacing.lg
+  },
+  section: {
+    gap: Spacing.sm,
+    marginBottom: Spacing.xl
+  },
+  sectionTitle: {
+    color: Colors.background.settings,
+    fontSize: 20,
+    fontWeight: Typography.weight.semiBold
+  },
+  sectionBody: {
+    backgroundColor: "#141414",
+    borderRadius: Radius.pill,
+    padding: Spacing.lg,
+    gap: Spacing.lg
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md
+  },
+  rowLabel: {
+    color: Colors.text.primary,
+    fontSize: Typography.size.button,
+    minWidth: 110,
+    flexShrink: 0
+  },
+  slider: {
+    width: 150,
+    marginLeft: "auto"
+  },
+  rowValue: {
+    color: Colors.text.secondary,
+    fontSize: Typography.size.label,
+    width: 40,
+    textAlign: "right"
+  },
+  toggle: {
+    width: 46,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: Colors.border.medium,
+    padding: 3,
+    marginLeft: "auto"
+  },
+  toggleOn: {
+    backgroundColor: Colors.background.settings
+  },
+  toggleKnob: {
+    width: 20,
+    height: 20,
+    borderRadius: Radius.seat,
+    backgroundColor: Colors.text.primary
+  },
+  toggleKnobOn: {
+    transform: [{translateX: 20}]
+  },
+  segmentedControl: {
+    flex: 1,
+    flexDirection: "row",
+    marginLeft: "auto",
+    borderRadius: Radius.card,
+    overflow: "hidden",
+    borderWidth: 0.5,
+    borderColor: Colors.border.medium
+  },
+  segment: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.sm,
+    backgroundColor: "#1e1e1e"
+  },
+  segmentActive: {
+    backgroundColor: Colors.background.settings
+  },
+  segmentText: {
+    color: Colors.text.secondary,
+    fontSize: Typography.size.label
+  },
+  segmentTextActive: {
+    color: Colors.text.primary,
+    fontWeight: Typography.weight.semiBold
+  }
+})

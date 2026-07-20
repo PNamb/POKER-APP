@@ -7,15 +7,15 @@ const LOBBY_MUSIC = require("@/assets/sounds/lobby.mp3");
 const GAME_MUSIC = require("@/assets/sounds/game_music.mp3");
 
 export function useBackgroundMusic() {
-  const { muted } = useMusic(false);
+  const { musicVolume } = useMusic(false);
   const pathname = usePathname();
   const isGameScreen = pathname === "/game";
 
   const lobbyPlayer = useAudioPlayer(LOBBY_MUSIC);
   const gamePlayer = useAudioPlayer(GAME_MUSIC);
 
-  lobbyPlayer.volume = muted ? 0 : 0.3;
-  gamePlayer.volume = muted ? 0 : 0.1;
+  lobbyPlayer.volume = musicVolume * 0.3;
+  gamePlayer.volume = musicVolume * 0.1;
 
   useEffect(() => {
     lobbyPlayer.loop = true;

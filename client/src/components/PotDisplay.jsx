@@ -1,3 +1,4 @@
+import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
@@ -38,39 +39,40 @@ export default function PotDisplay({
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: Spacing.xs,
   },
   mainPot: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: Spacing.sm,
     backgroundColor: "#1e1e1e",
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.pill,
     borderWidth: 0.5,
-    borderColor: "#f0c040",
+    borderColor: Colors.text.gold,
   },
   sidePot: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    backgroundColor: "#1e1e1e",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
+    gap: Spacing.sm,
+    backgroundColor: Colors.background.table,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.pill,
     borderWidth: 0.5,
     borderColor: "#555",
   },
   label: {
-    color: "#ffffff",
-    fontSize: 13,
+    color: Colors.text.primary,
+    fontSize: Typography.size.body,
     fontWeight: "500",
   },
   amount: {
-    color: "#ffffff",
-    fontSize: 13,
+    color: Colors.text.primary,
+    fontSize: Typography.size.body,
     fontWeight: "500",
   },
 });

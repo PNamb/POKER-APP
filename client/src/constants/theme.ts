@@ -5,6 +5,8 @@ export const Colors = {
     cardFace: "#f8f8f6", //card front
     cardBack: "#1a4a8a", //card back
     cardBackPattern: "#0d3266", //inner patter on card back
+    settings: "#89d7f3",
+    guide: "#de5050"
   },
   action: {
     fold: "#2a1a1a",

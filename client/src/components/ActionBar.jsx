@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Slider from "@react-native-community/slider";
+import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
 
 export default function ActionBar({
   legalActions, //object gotten from getLegalActions - stores the action buttons that can be used, and the call amount and min raise
@@ -91,9 +92,9 @@ export default function ActionBar({
           step={1}
           value={Math.min(raiseAmount, sliderMax)}
           onValueChange={setRaiseAmount}
-          minimumTrackTintColor="#f0c040"
+          minimumTrackTintColor={Colors.action.raise}
           maximumTrackTintColor="#444"
-          thumbTintColor="#f0c040"
+          thumbTintColor={Colors.action.raise}
           disabled = {isDisabled}
         />
       </View>
@@ -131,49 +132,49 @@ export default function ActionBar({
 
 const styles = StyleSheet.create({
   container: {
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "#1e1e1e",
+    gap: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.lg,
+    backgroundColor: Colors.background.table,
     borderTopWidth: 0.5,
     borderTopColor: "#333",
   },
   buttonRow: {
     flexDirection: "row",
-    gap: 8,
+    gap: Spacing.md,
   },
   button: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: Spacing.lg,
+    borderRadius: Radius.card,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 0.5,
   },
   foldButton: {
-    backgroundColor: "#2a1a1a",
-    borderColor: "#c0392b",
+    backgroundColor: Colors.action.fold,
+    borderColor: Colors.border.danger,
   },
   callButton: {
-    backgroundColor: "#2b3b2b",
-    borderColor: "#27ae60",
+    backgroundColor: Colors.action.call,
+    borderColor: Colors.border.success,
   },
   checkButton: {
-    backgroundColor: "#323266",
-    borderColor: "#2980b9",
+    backgroundColor: Colors.action.check,
+    borderColor: Colors.border.info,
   },
   raiseButton: {
-    backgroundColor: "#e2cb17",
-    borderColor: "#f0c040",
+    backgroundColor: Colors.action.raise,
+    borderColor: Colors.border.gold,
   },
   buttonText: {
-    fontSize: 14,
+    fontSize: Typography.size.button,
     fontWeight: "500",
-    color: "#ffffff",
+    color: Colors.text.primary,
   },
   raiseLabel: {
-    color: "#f0c040",
-    fontSize: 12,
+    color: Colors.action.raise,
+    fontSize: Typography.size.label,
     textAlign: "center",
   },
   dimmed: {

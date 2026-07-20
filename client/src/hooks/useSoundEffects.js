@@ -1,5 +1,6 @@
 import { useAudioPlayer } from "expo-audio";
 import { useCallback, useEffect, useRef } from "react";
+import { useMusic } from "@/contexts/MusicContext";
 
 const SOUNDS = {
   deal: require("@/assets/sounds/deal.wav"),
@@ -11,6 +12,8 @@ const SOUNDS = {
 };
 
 export function useSoundEffects(state) {
+  const { sfxVolume } = useMusic()
+  
   const players = {
     deal: useAudioPlayer(SOUNDS.deal),
     chip: useAudioPlayer(SOUNDS.chip),
@@ -20,15 +23,23 @@ export function useSoundEffects(state) {
     turn: useAudioPlayer(SOUNDS.turn),
   };
 
+  useEffect(() => {
+    Object.values(players).forEach((p) => {
+      p.volume = sfxVolume
+    })
+  }, [sfxVolume, players.deal, players.chip, players.fold, players.check, players.win, players.turn])
+
   const play = useCallback(
     (key) => {
       //audio driver
       const p = players[key];
       if (!p) return;
+      p.volume = sfxVolume
       p.seekTo(0);
       p.play();
     },
     [
+      sfxVolume,
       players.deal,
       players.chip,
       players.fold,

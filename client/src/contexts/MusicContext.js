@@ -3,12 +3,38 @@ import React, { createContext, useContext, useState } from "react";
 const MusicContext = createContext(null);
 
 export function MusicProvider({ children }) {
-  const [muted, setMuted] = useState(false);
+  const [musicVolume, setMusicVolume] = useState(0.3)
+  const [sfxVolume, setSfxVolume] = useState(1)
+  const [fourColorDeck, setFourColorDeck] = useState(false)
+  const [botDifficulty, setBotDifficulty] = useState("medium") //"easy" | "medium" | "hard" | "random"
 
-  const toggleMute = () => setMuted((m) => !m);
+  const muted = musicVolume === 0
+  const [volumeBeforeMute, setVolumeBeforeMute] = useState(0.3)
+
+  const toggleMute = () => {
+    if (muted) {
+      setMusicVolume(volumeBeforeMute || 0.3)
+    } else {
+      setVolumeBeforeMute(musicVolume)
+      setMusicVolume(0)
+    }
+  }
 
   return (
-    <MusicContext.Provider value={{ muted, toggleMute }}>
+    <MusicContext.Provider 
+      value = {{ 
+        musicVolume,
+        setMusicVolume,
+        sfxVolume,
+        setSfxVolume,
+        fourColorDeck,
+        setFourColorDeck,
+        botDifficulty,
+        setBotDifficulty,
+        muted,
+        toggleMute
+        }}
+    >
       {children}
     </MusicContext.Provider>
   );

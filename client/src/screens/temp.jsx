@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useGameState } from "../hooks/useGameState";
@@ -11,24 +11,22 @@ import Hand from "../components/Hand";
 import ActionBar from "../components/ActionBar";
 import { Colors, Radius, Spacing, Typography } from "../constants/theme";
 import { nextActiveIndex } from "@/game/game-engine";
-
-const {height: SCREEN_HEIGHT} = Dimensions.get("window")
-
+ 
 export default function GameScreen() {
   //this is the game screen
   const router = useRouter();
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
-
+ 
   const mode = params.mode ?? "bot";
   const numBots = params.numBots ?? 2;
   const roomCode = params.roomCode;
   const isHost = params.isHost === "true";
   const name = params.name ?? "You";
-
+ 
   const startingChips = Number(params.startingChips) || 500;
   const bigBlind = Number(params.bigBlind) || 20;
-
+ 
   const {
     state,
     localPlayerIndex,
@@ -48,11 +46,11 @@ export default function GameScreen() {
     bigBlind,
   });
   useSoundEffects(state);
-
+ 
   const handleLeave = () => {
     router.push("/");
   };
-
+ 
   const handleEndGame = () => {
     if (mode === "bot") {
       router.push("/");
@@ -63,7 +61,7 @@ export default function GameScreen() {
       router.push({ pathname: "/lobby", params: { isHost: "true", roomCode } });
     }
   };
-
+ 
   if (!state) {
     //loading state
     return (
@@ -74,26 +72,26 @@ export default function GameScreen() {
       </View>
     );
   }
-
+ 
   const localPlayer = state.players[localPlayerIndex];
   const opponents = state.players.filter((_, i) => i !== localPlayerIndex);
   const bettingPhase = state.phase !== "waiting" && state.phase !== "showdown";
   const playersWithChips = state.players.filter((p) => p.chips > 0).length;
   const isGameOver = state.phase === "showdown" && playersWithChips < 2;
-
+ 
   const firstToActIndex = bettingPhase
     ? state.phase === "preflop"
       ? nextActiveIndex(state.players, state.bigBlindIndex)
       : nextActiveIndex(state.players, state.dealerIndex)
     : null;
-
+ 
   const seatStateFor = (player) => {
     //seat state for a given player
     if (player.folded) return "folded";
     if (player.allIn) return "all_in";
     return "active";
   };
-
+ 
   const aggregatedWinners = state.winners?.reduce((acc, w) => {
     const existing = acc.find((a) => a.playerIndex === w.playerIndex);
     if (existing) {
@@ -103,13 +101,13 @@ export default function GameScreen() {
     }
     return acc;
   }, []);
-
+ 
   const renderOpponent = (player) => {
     const playerIndex = state.players.indexOf(player);
     const isTurn = state.activeIndex === playerIndex;
     const isShowdown = state.phase === "showdown";
     const revealCards = isShowdown && !player.folded;
-
+ 
     return (
       <PlayerSeat
         key={player.id}
@@ -125,82 +123,66 @@ export default function GameScreen() {
       />
     );
   };
-
+ 
   return (
     <View style={styles.container}>
-      <View style = {styles.playArea} pointerEvents = "box-none">
-        <ScrollView
-          horizontal
-          style = {StyleSheet.absoluteFill}
-          contentContainerStyle={styles.opponentRow}
-          showsHorizontalScrollIndicator={false}
-        >
-          {opponents.map(renderOpponent)}
-        </ScrollView>
-
-        <View style = {styles.opponentRow} pointerEvents = "none">
-          {opponents.length > 0 ? (
-            <View style = {{opacity: 0}}>
-              {renderOpponent(opponents[0])}
-            </View>
-          ): null}
-        </View>
-
-        <View style={styles.tableCenter} pointerEvents = "box-none">
-          <PotDisplay mainPot={state.pot} sidePots={state.sidePots} />
-          <CommunityCards
-            cards={state.communityCards}
-            cardWidth={60}
-            style={styles.communityCards}
-          />
-        
-          {state.phase === "showdown" && (
-            <View style={styles.showdownBanner} pointerEvents = "box-none">
-              <Text style={styles.showdownText}>
-                {aggregatedWinners
-                  ?.map(
-                    (w) => `${state.players[w.playerIndex].name} wins ${w.amount}`
-                  )
-                  .join(", ")}
+      <ScrollView
+        horizontal
+        contentContainerStyle={styles.opponentRow}
+        showsHorizontalScrollIndicator={false}
+      >
+        {opponents.map(renderOpponent)}
+      </ScrollView>
+ 
+      <View style={styles.tableCenter}>
+        <PotDisplay mainPot={state.pot} sidePots={state.sidePots} />
+        <CommunityCards
+          cards={state.communityCards}
+          cardWidth={60}
+          style={styles.communityCards}
+        />
+      </View>
+ 
+      {state.phase === "showdown" && (
+        <View style={styles.showdownBanner}>
+          <Text style={styles.showdownText}>
+            {aggregatedWinners
+              ?.map(
+                (w) => `${state.players[w.playerIndex].name} wins ${w.amount}`
+              )
+              .join(", ")}
+          </Text>
+          {isGameOver ? (
+            <>
+              <Text style={styles.gameOverText}>
+                {state.players.find((p) => p.chips > 0)?.name} wins the game
               </Text>
-              {isGameOver ? (
-                <>
-                  <Text style={styles.gameOverText}>
-                    {state.players.find((p) => p.chips > 0)?.name} wins the game
-                  </Text>
-                  {(mode === "bot" || isHost) && (
-
-                  <TouchableOpacity style = {[styles.endRoundButton, {backgroundColor: Colors.border.danger}]} onPress={handleEndGame}>
-                    <Text style={styles.endGameButton}>
-                      END HAND
-                    </Text>
-                  </TouchableOpacity>
-                  )}
-                </>
-              ) : (
-                (mode === "bot" || isHost) && (
-                  <TouchableOpacity style = {[styles.endRoundButton, {backgroundColor: Colors.action.raise}]} onPress={startNextHand}>
-                    <Text style={styles.nextHandButton}>
-                      NEXT HAND
-                    </Text>
-                  </TouchableOpacity>
-                )
+              {(mode === "bot" || isHost) && (
+                <Text style={styles.endGameButton} onPress={handleEndGame}>
+                  END GAME
+                </Text>
               )}
-            </View>
+            </>
+          ) : (
+            (mode === "bot" || isHost) && (
+              <Text style={styles.nextHandButton} onPress={startNextHand}>
+                NEXT HAND
+              </Text>
+            )
           )}
         </View>
-        <View style={styles.localSeat} pointerEvents = "none">
-          <Hand cards={localPlayer.holeCards} faceUp={true} cardWidth={70} />
-          <PlayerSeat
-            player={localPlayer}
-            cards={[]}
-            isTurn={state.activeIndex === localPlayerIndex}
-            isSelf={true}
-            isFirstToAct={localPlayerIndex === firstToActIndex}
-            seatState={seatStateFor(localPlayer)}
-            style={styles.localSeatInfo}
-          />
-        </View>
+      )}
+      <View style={styles.localSeat}>
+        <Hand cards={localPlayer.holeCards} faceUp={true} cardWidth={70} />
+        <PlayerSeat
+          player={localPlayer}
+          cards={[]}
+          isTurn={state.activeIndex === localPlayerIndex}
+          isSelf={true}
+          isFirstToAct={localPlayerIndex === firstToActIndex}
+          seatState={seatStateFor(localPlayer)}
+          style={styles.localSeatInfo}
+        />
       </View>
       <ActionBar
         legalActions={legalActions}
@@ -215,14 +197,11 @@ export default function GameScreen() {
     </View>
   );
 }
-
+ 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background.table,
-  },
-  playArea: {
-    flex: 1,
   },
   centered: {
     flex: 1,
@@ -260,19 +239,10 @@ const styles = StyleSheet.create({
   communityCards: {
     marginTop: Spacing.md,
   },
-  endRoundButton: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.card
-  },
   showdownBanner: {
-    width: "100%",
-    marginTop: Spacing.lg,
-    top: "80%",
-    position: "absolute",
     alignItems: "center",
     gap: Spacing.sm,
-    // paddingVertical: Spacing.md,
+    paddingVertical: Spacing.md,
   },
   showdownText: {
     color: Colors.text.gold,
@@ -281,6 +251,10 @@ const styles = StyleSheet.create({
   },
   nextHandButton: {
     color: Colors.text.primary,
+    backgroundColor: Colors.action.raise,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.card,
     fontSize: Typography.size.label,
     fontWeight: Typography.weight.normal,
   },
@@ -302,6 +276,10 @@ const styles = StyleSheet.create({
   },
   endGameButton: {
     color: Colors.text.primary,
+    backgroundColor: Colors.border.danger,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.card,
     fontSize: Typography.size.label,
     fontWeight: Typography.weight.normal,
   },

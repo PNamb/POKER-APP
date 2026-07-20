@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import Hand from "./Hand";
 import Svg, { Path } from "react-native-svg";
 import { chipArt } from "@/assets/SVG-icons";
+import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
 
 const SEAT_STATES = {
   ACTIVE: "active",
@@ -87,7 +88,7 @@ export default function PlayerSeat({
 const styles = StyleSheet.create({
   seat: {
     alignItems: "center",
-    gap: 8,
+    gap: Spacing.md,
   },
   emptySeat: {
     width: 100,
@@ -95,42 +96,42 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#444",
     borderStyle: "dashed",
-    borderRadius: 10,
+    borderRadius: Radius.seat,
     alignItems: "center",
     justifyContent: "center",
   },
   emptyLabel: {
     color: "#666",
-    fontSize: 13,
+    fontSize: Typography.size.body,
   },
   activeSeat: {
-    shadowColor: "#f0c040",
+    shadowColor: Colors.text.gold,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.9,
     shadowRadius: 12,
-    elevation: 8,
+    elevation: Spacing.md,
   },
   infoBar: {
-    backgroundColor: "#1e1e1e",
-    borderRadius: 8,
+    backgroundColor: Colors.background.table,
+    borderRadius: Radius.card,
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: Spacing.sm,
     minWidth: 110,
     gap: 3,
     borderWidth: 0.5,
     borderColor: "#333",
   },
   infoBarActive: {
-    borderColor: "#f0c040",
+    borderColor: Colors.text.gold,
   },
   nameRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: Spacing.sm,
   },
   name: {
     color: "#fff",
-    fontSize: 13,
+    fontSize: Typography.size.body,
     fontWeight: "500",
     flex: 1,
   },
@@ -140,23 +141,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   chips: {
-    color: "#ac2525",
-    fontSize: 12,
+    color: Colors.item.chips,
+    fontSize: Typography.size.label,
     fontWeight: "bold",
   },
   bet: {
-    color: "#f0c040",
-    fontSize: 12,
+    color: Colors.text.gold,
+    fontSize: Typography.size.label,
     fontWeight: "700",
   },
   badge: {
-    backgroundColor: "#c0392b",
-    borderRadius: 4,
+    backgroundColor: Colors.action.badgeAllIn,
+    borderRadius: Radius.badge,
     paddingHorizontal: 5,
     paddingVertical: 1,
   },
   badgeFolded: {
-    backgroundColor: "#444",
+    backgroundColor: Colors.action.badgeFolded,
   },
   badgeText: {
     color: "#fff",

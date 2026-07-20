@@ -129,7 +129,7 @@ export default function LobbyScreen() {
     return (
       <View style={styles.playerRow}>
         <Text style={styles.playerName}>
-          {item.name}
+          {item.name} 
           {item.isBot ? " 🤖" : ""}
         </Text>
         {item.isHost && (
@@ -347,7 +347,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     borderWidth: 0.5,
     borderRadius: Radius.badge,
-
     placeholderTextColor: Colors.text.muted,
   },
   removeBotButton: {

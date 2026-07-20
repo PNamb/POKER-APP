@@ -3,9 +3,25 @@ import { View, Text, StyleSheet } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { cardRank, cardSuit } from "../game/deck";
 import { SUIT_PATHS, FACE_PATHS } from "@/assets/SVG-icons";
+import { useMusic } from "@/contexts/MusicContext";
+import { Colors, Radius } from "@/constants/theme";
 
 const RED_SUITS = ["hearts", "diamonds"];
 const FACE_RANKS = ["J", "Q", "K"];
+
+const TWO_COLOR = {
+  clubs: "#1a1a1a",
+  spades: "#1a1a1a",
+  hearts: "#c0392b",
+  diamonds: "#c0392b"
+}
+
+const FOUR_COLOR = {
+  clubs: "#1de262",
+  spades: "#1a1a1a",
+  hearts: "#c0392b",
+  diamonds: "#006eff",
+};
 
 const PIP_LAYOUTS = {
   //layouts for the suit symbols in each card
@@ -105,6 +121,8 @@ function FaceIcon({ face, size, color }) {
 }
 
 export default function Card({ card, rank, suit, faceUp = true, width = 80 }) {
+  const {fourColorDeck} = useMusic()
+
   const rankStr = card !== undefined ? cardRank(card) : String(rank);
   const suitStr = card !== undefined ? cardSuit(card) : suit;
 
@@ -114,11 +132,9 @@ export default function Card({ card, rank, suit, faceUp = true, width = 80 }) {
   const cornerFontSize = width * 0.185;
   const cornerLineHeight = width * 0.21;
 
-  const isRed = RED_SUITS.includes(suitStr);
+  const suitColor = (fourColorDeck ? FOUR_COLOR : TWO_COLOR)[suitStr]
   const isFace = FACE_RANKS.includes(rankStr);
   const isAce = rankStr === "A";
-
-  const suitColor = isRed ? "#c0392b" : "#1a1a1a";
 
   if (!faceUp) {
     //if the card is face down
@@ -216,10 +232,10 @@ export default function Card({ card, rank, suit, faceUp = true, width = 80 }) {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 8,
+    borderRadius: Radius.card,
     borderWidth: 0.5,
-    borderColor: "#ccc",
-    backgroundColor: "#f8f8f6",
+    borderColor: Colors.border.card,
+    backgroundColor: Colors.background.cardFace,
     justifyContent: "space-between",
   },
   cornerTop: { alignItems: "flex-start" },
@@ -230,8 +246,8 @@ const styles = StyleSheet.create({
   pipArea: { flex: 1, position: "relative" },
   backPattern: {
     flex: 1,
-    borderRadius: 6,
-    backgroundColor: "#0d3266",
+    borderRadius: Radius.cardPattern,
+    backgroundColor: Colors.background.cardBackPattern,
     opacity: 0.8,
   },
 });
