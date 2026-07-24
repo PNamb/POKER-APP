@@ -37,6 +37,7 @@ export function useSoundEffects(state) {
       p.volume = sfxVolume
       p.seekTo(0);
       p.play();
+      
     },
     [
       sfxVolume,
@@ -69,7 +70,9 @@ export function useSoundEffects(state) {
 
     if (["preflop", "flop", "turn", "river"].includes(state.phase))
       play("deal");
-    if (state.phase === "showdown") play("win");
+    if (state.phase === "showdown") {
+      play("win");
+    }
   }, [state?.phase]); //run if phase changes
 
   return { play };

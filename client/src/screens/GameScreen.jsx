@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -11,14 +11,18 @@ import Hand from "../components/Hand";
 import ActionBar from "../components/ActionBar";
 import { Colors, Radius, Spacing, Typography } from "../constants/theme";
 import { nextActiveIndex } from "@/game/game-engine";
+import { useHaptics } from "@/hooks/useHaptics";
 
 const {height: SCREEN_HEIGHT} = Dimensions.get("window")
 
 export default function GameScreen() {
   //this is the game screen
   const router = useRouter();
+  const {fireHaptics} = useHaptics()
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
+
+  const [isAdvancing, setIsAdvancing] = useState(false)
 
   const mode = params.mode ?? "bot";
   const numBots = params.numBots ?? 2;
@@ -49,11 +53,23 @@ export default function GameScreen() {
   });
   useSoundEffects(state);
 
+  useEffect(() => {
+    setIsAdvancing(false)
+  }, [state?.handNumber])
+
   const handleLeave = () => {
     router.push("/");
   };
 
+  const handleNextHand = () => {
+    if (isAdvancing) return
+    setIsAdvancing(true)
+    fireHaptics()
+    startNextHand()
+  }
+
   const handleEndGame = () => {
+    fireHaptics()
     if (mode === "bot") {
       router.push("/");
       return;
@@ -179,7 +195,7 @@ export default function GameScreen() {
                 </>
               ) : (
                 (mode === "bot" || isHost) && (
-                  <TouchableOpacity style = {[styles.endRoundButton, {backgroundColor: Colors.action.raise}]} onPress={startNextHand}>
+                  <TouchableOpacity style = {[styles.endRoundButton, {backgroundColor: Colors.action.raise}]} onPress={handleNextHand}>
                     <Text style={styles.nextHandButton}>
                       NEXT HAND
                     </Text>

@@ -123,6 +123,7 @@ const styles = StyleSheet.create({
   },
   infoBarActive: {
     borderColor: Colors.text.gold,
+    borderWidth: 1
   },
   nameRow: {
     flexDirection: "row",

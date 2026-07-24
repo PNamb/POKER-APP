@@ -11,6 +11,8 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { Colors, Spacing, Typography, Radius } from "@/constants/theme";
 import Svg, { Path } from "react-native-svg";
 import { chipArt, altChipArt } from "@/assets/SVG-icons";
+import {useHaptics} from "@/hooks/useHaptics"
+import { useMusic } from "@/contexts/MusicContext";
 
 const ROOM_CODE_LENGTH = 6;
 const CODE_CHARACTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -35,14 +37,15 @@ function Art({ art, box, size = 35, color = "#ac2525" }) {
 export default function LobbyScreen() {
   //this is the name entering screen and waiting room
   const router = useRouter(); //for navigating
+  const {fireHaptics} = useHaptics()
   const params = useLocalSearchParams(); //for getting "router.push(...)" information from other screens
 
   const isHost = params.isHost === "true";
   const joinedRoomCode = params.roomCode; //present when joining, not when hosting
 
   const [error, setError] = useState(null);
-
-  const [playerName, setPlayerName] = useState("");
+  const {displayName} = useMusic() 
+  const [playerName, setPlayerName] = useState(displayName || "");
   const [nameSubmitted, setNameSubmitted] = useState(false);
   const [roomCode] = useState(() =>
     isHost ? generateRoomCode() : joinedRoomCode
@@ -50,7 +53,6 @@ export default function LobbyScreen() {
 
   //TODO - replace with real player list from socket-client.js once networking exists
   const [players, setPlayers] = useState([]);
-
   const [bots, setBots] = useState([]);
   const [nextBotNumber, setNextBotNumber] = useState(1);
 
@@ -58,7 +60,6 @@ export default function LobbyScreen() {
   const [blind, setBlind] = useState("20"); //new
 
   useEffect(() => {
-    //once name is submitted, add ourselves to the player list
     if (nameSubmitted) {
       setPlayers([{ id: "self", name: playerName, isHost }]);
     }
@@ -67,6 +68,7 @@ export default function LobbyScreen() {
   const BOT_NAME_PATTERN = /^bot\s*\d+$/i;
 
   const handleSubmitName = () => {
+    fireHaptics();
     const trimmed = playerName.trim();
     if (trimmed.length === 0) return;
     if (BOT_NAME_PATTERN.test(trimmed)) {
@@ -82,16 +84,19 @@ export default function LobbyScreen() {
   };
 
   const handleAddBot = () => {
+    fireHaptics();
     const bot = { id: `bot-${nextBotNumber}`, name: "Bot" };
     setBots((prev) => [...prev, bot]);
     setNextBotNumber((n) => n + 1);
   };
 
   const handleRemoveBot = (botID) => {
+    fireHaptics();
     setBots((prev) => prev.filter((b) => b.id !== botID));
   };
 
   const handleStartGame = () => {
+    fireHaptics();
     const startingChips = parseInt(chips, 10) || 500;
     const bigBlind = parseInt(blind, 10) || 20;
     if (isHost && players.length === 1) {
@@ -242,8 +247,9 @@ export default function LobbyScreen() {
         </View>
         {isHost ? (
           <TouchableOpacity
-            style={styles.primaryButton}
+            style={[styles.primaryButton, roster.length === 1 && styles.dimmed]}
             onPress={handleStartGame}
+            disabled = {roster.length === 1}
           >
             <Text style={styles.primaryButtonText}>START GAME</Text>
           </TouchableOpacity>
@@ -301,7 +307,7 @@ const styles = StyleSheet.create({
   codeBlock: {
     alignItems: "center",
     gap: Spacing.xs,
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: Colors.border.gold,
     borderRadius: Radius.card,
     paddingVertical: Spacing.md,

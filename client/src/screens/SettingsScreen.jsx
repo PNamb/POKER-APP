@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import Slider from "@react-native-community/slider";
 import { useMusic } from "@/contexts/MusicContext";
+import {useHaptics} from "@/hooks/useHaptics"
 
 function Section({title, children}) {
   return (
@@ -19,7 +20,9 @@ function Section({title, children}) {
   )
 }
 
-function SliderRow({label, value, onChange}) {
+function SliderRow({label, value, onChange, onCommit}) {
+  const {fireSelectionHaptics} = useHaptics()
+
   return (
     <View style = {styles.row}>
       <Text style = {styles.rowLabel}>{label}</Text>
@@ -30,6 +33,7 @@ function SliderRow({label, value, onChange}) {
         step = {0.01}
         value = {value}
         onValueChange = {onChange}
+        onSlidingComplete = {() => {fireSelectionHaptics(); onCommit?.()}}
         minimumTrackTintColor = {Colors.background.settings}
         maximumTrackTintColor = {Colors.border.medium}
         thumbTintColor = {Colors.background.settings}
@@ -50,13 +54,7 @@ function ToggleRow({label, value, onChange}) {
   )
 }
 
-function DifficultyRow({label, value, onChange}) {
-  const OPTIONS = [
-    {key: "easy", label: "Easy"},
-    {key: "medium", label: "Medium"},
-    {key: "hard", label: "Hard"},
-    {key: "random", label: "Random"}
-  ]
+function LevelRow({label, value, onChange, OPTIONS}) {
 
   return (
     <View style = {styles.row}>
@@ -76,9 +74,24 @@ function DifficultyRow({label, value, onChange}) {
   )
 }
 
-//TODO - add setting for bot difficulty, fold/all-in confirm, haptics
+const BOT_OPTIONS = [
+  {key: "easy", label: "Easy"},
+  {key: "medium", label: "Medium"},
+  {key: "hard", label: "Hard"},
+  {key: "random", label: "Random"}
+]
+
+const HAPTIC_OPTIONS = [
+  {key: "Off", label: "Off"},
+  {key: "Light", label: "Light"},
+  {key: "Medium", label: "Medium"},
+  {key: "Heavy", label: "Heavy"}
+]
+
+//TODO - fold/all-in confirm, haptics
 export default function SettingsScreen() {
     const router = useRouter()
+    const {fireHaptics} = useHaptics()
     const {
       musicVolume,
       setMusicVolume,
@@ -87,11 +100,14 @@ export default function SettingsScreen() {
       fourColorDeck,
       setFourColorDeck,
       botDifficulty,
-      setBotDifficulty
+      setBotDifficulty,
+      hapticLevel,
+      setHapticLevel,
+      persistVolumeSettings
     } = useMusic()
 
     const handleBack = () => {
-        //for back button
+        //for back button - currently unused
         router.back();
     };
 
@@ -103,18 +119,19 @@ export default function SettingsScreen() {
 
             <Text style = {styles.pageTitle}>Settings</Text>
 
-            <Section title = "Audio">
-              <SliderRow label = "Music" value = {musicVolume} onChange = {setMusicVolume} />
+            <Section title = "General">
+              <LevelRow label = "Haptics" value = {hapticLevel} onChange = {(v) => {fireHaptics(); setHapticLevel(v)}} OPTIONS = {HAPTIC_OPTIONS}/>
+            </Section>
 
-              <SliderRow label = "Sound Effects" value = {sfxVolume} onChange = {setSfxVolume} />
+            <Section title = "Audio">
+              <SliderRow label = "Music" value = {musicVolume} onChange = {setMusicVolume} onCommit = {persistVolumeSettings} />
+
+              <SliderRow label = "Sound Effects" value = {sfxVolume} onChange = {setSfxVolume} onCommit = {persistVolumeSettings} />
             </Section>
 
             <Section title = "Table">
-              <ToggleRow label = "Four Color Deck" value = {fourColorDeck} onChange = {setFourColorDeck} />
-            </Section>
-
-            <Section title = "Bots">
-              <DifficultyRow label = "Bot Difficulty" value = {botDifficulty} onChange = {setBotDifficulty} />
+              <ToggleRow label = "Four Color Deck" value = {fourColorDeck} onChange = {(v) => {fireHaptics(); setFourColorDeck(v)}} />
+              <LevelRow label = "Bot Difficulty" value = {botDifficulty} onChange = {(v) => {fireHaptics(); setBotDifficulty(v)}} OPTIONS = {BOT_OPTIONS} />
             </Section>
         </View>
     )
@@ -152,7 +169,7 @@ const styles = StyleSheet.create({
   },
   sectionBody: {
     backgroundColor: "#141414",
-    borderRadius: Radius.pill,
+    borderRadius: Radius.card,
     padding: Spacing.lg,
     gap: Spacing.lg
   },

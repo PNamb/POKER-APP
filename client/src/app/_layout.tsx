@@ -23,6 +23,7 @@ function LayoutInner() {
         <Stack.Screen name="temp" />
         <Stack.Screen name = "guide" />
         <Stack.Screen name = "settings" />
+        <Stack.Screen name = "profile" />
       </Stack>
     </>
   );

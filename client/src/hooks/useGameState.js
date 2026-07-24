@@ -20,12 +20,13 @@ export function useGameState({
   startingChips = 500,
   bigBlind = 20,
 }) {
-  const { botDifficulty } = useMusic()
+  const { botDifficulty, recordHandResult } = useMusic()
   const [state, setState] = useState(null);
   const [localPlayerIndex, setLocalPlayerIndex] = useState(0);
   const botTimeoutRef = useRef(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const transitionRef = useRef(null);
+  const recordedHandRef = useRef(null)
 
   const commitState = useCallback((prevState, nextState) => {
     if (botTimeoutRef.current) {
@@ -139,6 +140,17 @@ export function useGameState({
 
     return () => clearTimeout(botTimeoutRef.current);
   }, [mode, state, isTransitioning, commitState, botDifficulty]);
+
+  useEffect(() => {
+    if (!state || state.phase !== "showdown" || !state.winners) return
+    if (recordedHandRef.current === state.handNumber) return
+
+    recordedHandRef.current = state.handNumber
+
+    const localWinnings = state.winners.filter((w) => w.playerIndex === localPlayerIndex).reduce((sum, w) => sum + w.amount, 0)
+
+    recordHandResult(localWinnings > 0, localWinnings)
+  }, [state, localPlayerIndex, recordHandResult])
 
   const legalActions = state ? getLegalActions(state, localPlayerIndex) : null;
   const isLocalPlayerTurn =

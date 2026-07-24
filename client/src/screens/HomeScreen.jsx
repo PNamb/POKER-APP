@@ -12,6 +12,7 @@ import {
   soundOffArt,
   profileArt,
 } from "@/assets/SVG-icons";
+import {useHaptics} from "@/hooks/useHaptics"
 
 function Art({ art, box, size = 35, color = "#ffffff", isStroke = false }) {
   return (
@@ -30,28 +31,39 @@ function Art({ art, box, size = 35, color = "#ffffff", isStroke = false }) {
 }
 
 export default function HomeScreen() {
+  const {fireHaptics} = useHaptics()
   //this is the title screen
   const router = useRouter(); //use to navigate to other screens
   const { muted, toggleMute } = useMusic();
 
   const handleHost = () => {
+    fireHaptics();
     router.push({ pathname: "/lobby", params: { isHost: true } });
   };
 
   const handleJoin = () => {
+    fireHaptics();
     router.push("/join");
   };
 
   const handleGuide = () => {
+    fireHaptics();
     router.push("/guide")
   }
 
   const handleSettings = () => {
+    fireHaptics();
     router.push("/settings")
+  }
+
+  const handleProfile = () => {
+    fireHaptics()
+    router.push("/profile")
   }
 
   //TEMP DEV ONLY
   const handleUITest = () => {
+    fireHaptics();
     router.push("/ui_test");
   };
 
@@ -84,10 +96,10 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         <View style={styles.settingsButtonRow}>
-          <TouchableOpacity
+          <TouchableOpacity //Setting button
             style={[
               styles.settingsButton,
-              { backgroundColor: "#89d7f3" },
+              { backgroundColor: Colors.background.settings },
               { borderColor: "#89b3f3" },
             ]}
             onPress = {handleSettings}
@@ -95,36 +107,37 @@ export default function HomeScreen() {
             <Art art={cogArt} box={"0 0 64 64"} size={40} />
           </TouchableOpacity>
 
-          <TouchableOpacity
+          <TouchableOpacity //Sound on/off button
             style={[
               styles.settingsButton,
-              { backgroundColor: "#e67f11" },
+              { backgroundColor: Colors.background.sound },
               { borderColor: "#e66a11" },
             ]}
-            onPress={toggleMute}
+            onPress={() => {fireHaptics(); toggleMute()}}
           >
             <Art
               art={muted ? soundOffArt : soundOnArt}
-              box={"0 0 24 24"}
+              box={"0 0 1024 1024"}
               size={40}
-              isStroke={true}
+              isStroke={false}
             />
           </TouchableOpacity>
 
-          <TouchableOpacity
+          <TouchableOpacity //Profile button
             style={[
               styles.settingsButton,
-              { backgroundColor: "#0ce00cb7" },
+              { backgroundColor: Colors.background.profile },
               { borderColor: "#107b10" },
             ]}
+            onPress = {handleProfile}
           >
             <Art art={profileArt} box={"0 0 24 24"} size={40} />
           </TouchableOpacity>
 
-          <TouchableOpacity
+          <TouchableOpacity //Guide button
             style={[
               styles.settingsButton,
-              { backgroundColor: "#de5050" },
+              { backgroundColor: Colors.background.guide },
               { borderColor: "#ef2f2f" },
             ]}
             onPress = {handleGuide}
@@ -176,7 +189,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.card,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 0.5,
+    borderWidth: 1.5,
   },
   smallButton: {
     paddingHorizontal: Spacing.md,

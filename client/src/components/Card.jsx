@@ -17,7 +17,7 @@ const TWO_COLOR = {
 }
 
 const FOUR_COLOR = {
-  clubs: "#1de262",
+  clubs: "#2cbc5e",
   spades: "#1a1a1a",
   hearts: "#c0392b",
   diamonds: "#006eff",
@@ -218,9 +218,10 @@ export default function Card({ card, rank, suit, faceUp = true, width = 80 }) {
       <SuitIcon suit={suitStr} size={cornerIconSize} color={suitColor} />
     </View>
   );
+
   return (
     //rendering everything
-    <View style={[styles.card, { width, height, padding: padding }]}>
+    <View style={[styles.card, { width, height, padding: padding , borderColor: suitColor}]}>
       {renderCorner(false)}
 
       <View style={styles.centerArea}>{renderCenter()}</View>

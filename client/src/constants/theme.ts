@@ -6,7 +6,9 @@ export const Colors = {
     cardBack: "#1a4a8a", //card back
     cardBackPattern: "#0d3266", //inner patter on card back
     settings: "#89d7f3",
-    guide: "#de5050"
+    guide: "#de5050",
+    profile: "#0ce00cb7",
+    sound: "#e67f11"
   },
   action: {
     fold: "#2a1a1a",
@@ -21,10 +23,11 @@ export const Colors = {
     medium: "#444444", //slider track, dashed placeholders
     muted: "#555555", //side pot
     card: "#cccccc", //card outline
-    gold: "#fa8321", //active accent (pot, active seat, raise)
+    gold: "#e84f0d", //active accent (pot, active seat, raise)
+    white: "#ffffff",
     danger: "#c0392b", //fold button or all-in badge
     success: "#27ae60", //call button
-    info: "#2980b9", //check button
+    info: "#1c1cba", //check button
   },
   text: {
     primary: "#ffffff",

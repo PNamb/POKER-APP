@@ -192,11 +192,24 @@ export default function GuideScreen() {
 
     const [visualsReady, setVisualsReady] = useState(false)
 
+    // useEffect(() => {
+    //   const task = InteractionManager.runAfterInteractions(() => {
+    //     setVisualsReady(true)
+    //   })
+    //   return () => task.cancel()
+    // }, [])
+
     useEffect(() => {
-      const task = InteractionManager.runAfterInteractions(() => {
-        setVisualsReady(true)
+      let frame1, frame2
+      frame1 = requestAnimationFrame(() => {
+        frame2 = requestAnimationFrame(() => {
+          setVisualsReady(true)
+        })
       })
-      return () => task.cancel()
+      return () => {
+        cancelAnimationFrame(frame1)
+        if (frame2) cancelAnimationFrame(frame2)
+      }
     }, [])
 
 
@@ -237,7 +250,7 @@ const styles = StyleSheet.create({
     padding: Spacing.xl
   },
   pageTitle: {
-    color: "#de5050",
+    color: Colors.background.guide,
     fontSize: 30,
     fontWeight: Typography.weight.bold,
     marginBottom: Spacing.md,
@@ -252,7 +265,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xxl
   },
   header: {
-    color: "#de5050",
+    color: Colors.background.guide,
     fontSize: 20,
     marginBottom: Spacing.sm,
     borderBottomWidth: 0.5,
@@ -283,7 +296,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm
   },
   galleryLabel: {
-    color: "#de5050",
+    color: Colors.background.guide,
     fontSize: Typography.size.label,
     fontWeight: Typography.weight.semiBold
   },

@@ -8,12 +8,14 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Colors, Spacing, Typography, Radius } from "@/constants/theme";
+import {useHaptics} from "@/hooks/useHaptics"
 
 const CODE_LENGTH = 6;
 
 export default function JoinScreen() {
   //this is the code-entering screen
   const router = useRouter();
+  const {fireHaptics} = useHaptics()
 
   const [code, setCode] = useState("");
   const [error, setError] = useState(null);
@@ -33,6 +35,7 @@ export default function JoinScreen() {
 
   const handleJoin = async () => {
     //for joining a game
+    fireHaptics();
     if (code.length < CODE_LENGTH) {
       setError("Enter a valid 6-letter room code");
       return;

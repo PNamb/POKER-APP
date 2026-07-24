@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.pill,
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: Colors.text.gold,
   },
   sidePot: {
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.xs,
     borderRadius: Radius.pill,
-    borderWidth: 0.5,
+    borderWidth: 0.75,
     borderColor: "#555",
   },
   label: {
