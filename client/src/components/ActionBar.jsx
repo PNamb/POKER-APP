@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Slider from "@react-native-community/slider";
 import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
 import * as Haptics from "expo-haptics"
-import { useMusic } from "@/contexts/MusicContext";
+import { useApp } from "@/contexts/AppContext";
 import { useHaptics } from "@/hooks/useHaptics";
 
 export default function ActionBar({
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: Typography.size.button,
-    fontWeight: "500",
+    fontWeight: Typography.weight.extraBold,
     color: Colors.text.primary,
   },
   raiseLabel: {

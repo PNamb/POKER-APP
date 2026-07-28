@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { Colors, Spacing, Typography, Radius } from "@/constants/theme";
 import Svg, { Path } from "react-native-svg";
-import { useMusic } from "@/contexts/MusicContext";
+import { useApp } from "@/contexts/AppContext";
 import {
   titleArt,
   cogArt,
@@ -13,6 +13,7 @@ import {
   profileArt,
 } from "@/assets/SVG-icons";
 import {useHaptics} from "@/hooks/useHaptics"
+// import { RTCPeerConnection } from "react-native-webrtc";
 
 function Art({ art, box, size = 35, color = "#ffffff", isStroke = false }) {
   return (
@@ -31,10 +32,11 @@ function Art({ art, box, size = 35, color = "#ffffff", isStroke = false }) {
 }
 
 export default function HomeScreen() {
+  // console.log("RTCPeerConnection type:", typeof RTCPeerConnection);
   const {fireHaptics} = useHaptics()
   //this is the title screen
   const router = useRouter(); //use to navigate to other screens
-  const { muted, toggleMute } = useMusic();
+  const { muted, toggleMute } = useApp();
 
   const handleHost = () => {
     fireHaptics();
@@ -66,6 +68,11 @@ export default function HomeScreen() {
     fireHaptics();
     router.push("/ui_test");
   };
+
+  const handleNetworkTest = () => {
+    fireHaptics()
+    router.push("/network_test")
+  }
 
   return (
     <View style={styles.container}>
@@ -148,6 +155,10 @@ export default function HomeScreen() {
 
         <TouchableOpacity style={styles.devButton} onPress={handleUITest}>
           <Text style={styles.devButtonText}>🛠 UI Test Harness</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.devButton} onPress={handleNetworkTest}>
+          <Text style={styles.devButtonText}>Network Test</Text>
         </TouchableOpacity>
       </View>
     </View>

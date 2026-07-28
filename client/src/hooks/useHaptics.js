@@ -1,6 +1,6 @@
 import * as Haptics from "expo-haptics"
 import { useCallback } from "react"
-import {useMusic} from "@/contexts/MusicContext"
+import {useApp} from "@/contexts/AppContext"
 
 const HAPTIC_STYLE = {
   Light: Haptics.ImpactFeedbackStyle.Light,
@@ -9,7 +9,7 @@ const HAPTIC_STYLE = {
 }
 
 export function useHaptics() {
-    const {hapticLevel} = useMusic()
+    const {hapticLevel} = useApp()
     
 
     const fireHaptics = useCallback(() => {
@@ -24,5 +24,10 @@ export function useHaptics() {
         Haptics.selectionAsync()
     }, [hapticLevel])
 
-    return {fireHaptics, fireSelectionHaptics}
+    const fireErrorHaptics = useCallback(() => {
+        if (hapticLevel === "Off") return
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid)
+    })
+
+    return {fireHaptics, fireSelectionHaptics, fireErrorHaptics}
 }

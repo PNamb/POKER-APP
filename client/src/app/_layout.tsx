@@ -2,8 +2,9 @@ import React from "react";
 import { Stack } from "expo-router";
 import { Colors } from "@/constants/theme";
 import { useBackgroundMusic } from "@/hooks/useBackgroundMusic";
-import { MusicProvider } from "@/contexts/MusicContext";
+import { AppProvider } from "@/contexts/AppContext";
 import { StatusBar } from "react-native";
+import { NetworkSessionProvider } from "@/contexts/NetworkSessionContext";
 
 function LayoutInner() {
   useBackgroundMusic();
@@ -24,6 +25,7 @@ function LayoutInner() {
         <Stack.Screen name = "guide" />
         <Stack.Screen name = "settings" />
         <Stack.Screen name = "profile" />
+        <Stack.Screen name = "network_test" />
       </Stack>
     </>
   );
@@ -31,8 +33,11 @@ function LayoutInner() {
 
 export default function RootLayout() {
   return (
-    <MusicProvider>
-      <LayoutInner />
-    </MusicProvider>
+    <NetworkSessionProvider>
+      <AppProvider>
+        <LayoutInner />
+      </AppProvider>
+    </NetworkSessionProvider>
+    
   );
 }

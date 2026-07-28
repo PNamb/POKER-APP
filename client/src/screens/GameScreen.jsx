@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useGameState } from "../hooks/useGameState";
 import { useSoundEffects } from "../hooks/useSoundEffects";
+import { useNetworkSession } from "@/contexts/NetworkSessionContext";
 import CommunityCards from "../components/CommunityCards";
 import PotDisplay from "../components/PotDisplay";
 import PlayerSeat from "../components/PlayerSeat";
@@ -50,6 +51,8 @@ export default function GameScreen() {
     playerName: name,
     startingChips,
     bigBlind,
+    session: mode === "online" ? session : undefined,
+    hostSession: mode === "online" && isHost ? hostSession : undefined
   });
   useSoundEffects(state);
 
@@ -76,7 +79,7 @@ export default function GameScreen() {
     }
     if (mode === "online") {
       //TODO - broadcast "return to lobby" to all connected clients via socket-client.js
-      router.push({ pathname: "/lobby", params: { isHost: "true", roomCode } });
+      router.push({ pathname: "/lobby", params: { isHost: isHost ? "true" : false, roomCode } });
     }
   };
 

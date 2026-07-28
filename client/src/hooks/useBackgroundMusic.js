@@ -1,13 +1,13 @@
 import { useAudioPlayer } from "expo-audio";
 import { usePathname } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { useMusic } from "@/contexts/MusicContext";
+import { useApp } from "@/contexts/AppContext";
 
 const LOBBY_MUSIC = require("@/assets/sounds/lobby.mp3");
 const GAME_MUSIC = require("@/assets/sounds/game_music.mp3");
 
 export function useBackgroundMusic() {
-  const { musicVolume } = useMusic(false);
+  const { musicVolume } = useApp(false);
   const pathname = usePathname();
   const isGameScreen = pathname === "/game";
 

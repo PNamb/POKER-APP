@@ -588,15 +588,3 @@ export function getLegalActions(state, playerIndex) {
     minRaiseAmount: state.minRaise,
   };
 }
-
-export function toPublicState(state, viewerIndex) {
-  const isShowdown = state.phase === "showdown"
-  return {
-    ...state,
-    players: state.players.map((p, i) => ({
-      ...p,
-      holeCards: (i === viewerIndex || (isShowdown && !p.folded)) ? p.holeCards : p.holeCards.map(() => null)
-    })),
-    deck: undefined
-  }
-}

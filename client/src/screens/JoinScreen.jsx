@@ -19,7 +19,7 @@ export default function JoinScreen() {
 
   const [code, setCode] = useState("");
   const [error, setError] = useState(null);
-  const [connecting, setConnecting] = useState(false);
+  // const [connecting, setConnecting] = useState(false);
 
   const handleChange = (text) => {
     //for entering a code
@@ -41,19 +41,15 @@ export default function JoinScreen() {
       return;
     }
 
-    setConnecting(true);
-    setError(null);
-
-    //PLACEHOLDER; replace with real connection later
-    setTimeout(() => {
-      setConnecting(false);
-      router.push({
-        pathname: "/lobby",
-        params: { isHost: false, roomCode: code },
-      });
-    }, 600);
+    router.push({
+      pathname: "/lobby",
+      params: {
+        isHost: "false",
+        roomCode: code
+      }
+    })
   };
-  const canSubmit = code.length === CODE_LENGTH && !connecting;
+  const canSubmit = code.length === CODE_LENGTH
 
   return (
     //render the join button and enter-code input
@@ -84,7 +80,7 @@ export default function JoinScreen() {
           disabled={!canSubmit}
         >
           <Text style={styles.joinButtonText}>
-            {connecting ? "CONNECTING..." : "JOIN"}
+            JOIN
           </Text>
         </TouchableOpacity>
       </View>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -12,19 +12,8 @@ import { Colors, Spacing, Typography, Radius } from "@/constants/theme";
 import Svg, { Path } from "react-native-svg";
 import { chipArt, altChipArt } from "@/assets/SVG-icons";
 import {useHaptics} from "@/hooks/useHaptics"
-import { useMusic } from "@/contexts/MusicContext";
-
-const ROOM_CODE_LENGTH = 6;
-const CODE_CHARACTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
-function generateRoomCode() {
-  //generates random 6-character code
-  let code = "";
-  for (let i = 0; i < ROOM_CODE_LENGTH; i++) {
-    code += CODE_CHARACTERS[Math.floor(Math.random() * CODE_CHARACTERS.length)];
-  }
-  return code;
-}
+import { useApp } from "@/contexts/AppContext";
+import { useNetworkSession } from "@/contexts/NetworkSessionContext";
 
 function Art({ art, box, size = 35, color = "#ac2525" }) {
   return (
@@ -44,30 +33,43 @@ export default function LobbyScreen() {
   const joinedRoomCode = params.roomCode; //present when joining, not when hosting
 
   const [error, setError] = useState(null);
-  const {displayName} = useMusic() 
+  const {displayName, startingChips, startingBigBlind} = useApp() 
   const [playerName, setPlayerName] = useState(displayName || "");
   const [nameSubmitted, setNameSubmitted] = useState(false);
-  const [roomCode] = useState(() =>
-    isHost ? generateRoomCode() : joinedRoomCode
-  );
+  const [connecting, setConnecting] = useState(false)
 
-  //TODO - replace with real player list from socket-client.js once networking exists
-  const [players, setPlayers] = useState([]);
-  const [bots, setBots] = useState([]);
-  const [nextBotNumber, setNextBotNumber] = useState(1);
+  const {
+    hostSession,
+    session,
+    startHosting,
+    startJoining,
+    endSession
+  } = useNetworkSession()
 
-  const [chips, setChips] = useState("500"); //new
-  const [blind, setBlind] = useState("20"); //new
+  const [roomCode, setRoomCode] = useState(isHost ? null : joinedRoomCode)
 
+  const [roster, setRoster] = useState([]) //[{name, isBot, botID, isHost}]
+  const [gameStarting, setGameStarting] = useState(false)
+
+  const [chips, setChips] = useState(startingChips); //new
+  const [blind, setBlind] = useState(startingBigBlind); //new
+
+  const startedRef = useRef()
+
+  const navInputsRef = useRef({roomCode, chips, blind, roster, playerName, isHost})
   useEffect(() => {
-    if (nameSubmitted) {
-      setPlayers([{ id: "self", name: playerName, isHost }]);
-    }
-  }, [nameSubmitted]);
+    navInputsRef.current = {roomCode, chips, blind, roster, playerName, isHost}
+  }, [roomCode, chips, blind, roster, playerName, isHost])
 
   const BOT_NAME_PATTERN = /^bot\s*\d+$/i;
 
-  const handleSubmitName = () => {
+  useEffect(() => {
+    return () => {
+      endSession()
+    }
+  }, [endSession])
+
+  const handleSubmitName = async () => {
     fireHaptics();
     const trimmed = playerName.trim();
     if (trimmed.length === 0) return;
@@ -76,58 +78,139 @@ export default function LobbyScreen() {
       setError("Invalid name");
       return;
     }
-    setNameSubmitted(true);
+
+    setError(null)
+    setConnecting(true)
+
+    try {
+      if (isHost) {
+        const newHostSession = await startHosting({hostName: trimmed})
+        setRoomCode(newHostSession.roomCode)
+      } else {
+        const clientSession = await startJoining({
+          playerName: trimmed,
+          roomCode: joinedRoomCode
+        })
+
+        clientSession.setOnJoinRejected(({reason}) => {
+          setConnecting(false)
+          setNameSubmitted(false)
+          const messages = {
+            connection_failed: "Couldn't reach room",
+            room_full: "Room is full",
+            name_taken: "That name is taken",
+            game_already_started: "Game has already started"
+          }
+          setError(messages[reason] || "Couldn't join room")
+        })
+
+        setTimeout(() => {
+          if (!clientSession.joined && !clientSession.roomCode) {
+            setConnecting(false)
+            setNameSubmitted(false)
+            setError((prev) => prev ?? "Hit timeout")
+          }
+        }, 6000);
+      }
+      setNameSubmitted(true)
+    } catch (e) {
+      console.warn("[Lobby] failed to start/join session", e)
+      setError("Something went wrong connecting. Please try again.")
+    } finally {
+      setConnecting(false)
+    }
   };
 
+  useEffect(() => {
+    if (!session) return
+    const handleRoster = (payload) => {
+      setRoster(payload.players ?? [])
+      if (payload.roomCode) setRoomCode(payload.roomCode)
+    }
+
+    if (isHost && hostSession) {
+      hostSession.setOnRosterChange(handleRoster)
+    } else {
+      session.setOnRosterChange?.(handleRoster)
+    }
+
+    session.setOnGameStarted?.(() => {
+      if (startedRef.current) return
+      startedRef.current = true
+      navigateToGame()
+    })
+
+    session.setOnError?.(({code, message}) => {
+      console.warn("[Lobby] session error", code, message)
+      setError(message)
+    })
+  }, [session, hostSession, isHost])
+
   const handleBack = () => {
+    endSession()
     router.back();
   };
 
   const handleAddBot = () => {
     fireHaptics();
-    const bot = { id: `bot-${nextBotNumber}`, name: "Bot" };
-    setBots((prev) => [...prev, bot]);
-    setNextBotNumber((n) => n + 1);
+    session?.requestAddBot()
   };
 
   const handleRemoveBot = (botID) => {
     fireHaptics();
-    setBots((prev) => prev.filter((b) => b.id !== botID));
+    session.requestRemoveBot(botID)
   };
 
-  const handleStartGame = () => {
-    fireHaptics();
-    const startingChips = parseInt(chips, 10) || 500;
-    const bigBlind = parseInt(blind, 10) || 20;
-    if (isHost && players.length === 1) {
-      router.push({
-        pathname: "/game",
-        params: {
-          mode: "bot",
-          numBots: bots.length,
-          name: playerName,
-          startingChips,
-          bigBlind,
-        },
-      });
-      return;
-    }
+  const navigateToGame = () => {
+    const { roomCode: code, chips: c, blind: b, roster: r, playerName: name, isHost: host } = navInputsRef.current
+    const parsedChips = parseInt(c, 10) || 500
+    const parsedBlind = parseInt(b, 10) || 20
+    const numBots = r.filter((p) => p.isBot).length
+
     router.push({
       pathname: "/game",
       params: {
         mode: "online",
-        roomCode,
-        numBots: bots.length,
-        startingChips,
-        bigBlind,
-      },
-    });
+        roomCode: code,
+        numBots,
+        isHost: host ? "true" : "false",
+        name,
+        startingChips: parsedChips,
+        bigBlind: parsedBlind
+      }
+    })
+  }
+
+  const handleStartGame = () => {
+    fireHaptics();
+    if (!hostSession) return
+    const parsedChips = parseInt(chips, 10) || 500;
+    const parsedBlind = parseInt(blind, 10) || 20;
+
+    const otherHumans = roster.filter((p) => !p.isBot && !p.isHost)
+    if (otherHumans.length === 0) {
+      const numBots = roster.filter((p) => p.isBot).length
+      router.push({
+        pathname: "/game",
+        params: {
+          mode: "bot",
+          numBots,
+          name: playerName,
+          startingChips: parsedChips,
+          bigBlind: parsedBlind,
+        },
+      });
+      return;
+    }
+
+    setGameStarting(true)
+    hostSession.startGame({startingChips: parsedChips, bigBlind: parsedBlind})
   };
 
-  const roster = [
-    ...players.map((p) => ({ ...p, isBot: false })),
-    ...bots.map((b) => ({ ...b, isBot: true })),
-  ];
+  // const roster = [
+  //   ...players.map((p) => ({ ...p, isBot: false })),
+  //   ...bots.map((b) => ({ ...b, isBot: true })),
+  // ];
 
   const renderPlayer = ({ item }) => {
     //render a single player
@@ -147,6 +230,7 @@ export default function LobbyScreen() {
               onChangeText={setChips}
               keyboardType="number-pad"
               autoCorrect={false}
+              editable = {isHost}
             />
 
             <Art art={altChipArt} box={"0 0 64 64"} color={"#1a4a8a"} />
@@ -160,13 +244,14 @@ export default function LobbyScreen() {
               onChangeText={setBlind}
               keyboardType="number-pad"
               autoCorrect={false}
+              editable={isHost}
             />
           </>
         )}
         {item.isBot && isHost && (
           <TouchableOpacity
             style={[styles.removeBotButton, { backgroundColor: "#712c2c" }]}
-            onPress={() => handleRemoveBot(item.id)}
+            onPress={() => handleRemoveBot(item.botID)}
           >
             <Text style={styles.removeBotText}>✕</Text>
           </TouchableOpacity>
@@ -205,6 +290,7 @@ export default function LobbyScreen() {
             placeholderTextColor={Colors.text.muted}
             maxLength={12}
             autoFocus={true}
+            editable={!connecting}
           />
 
           <TouchableOpacity
@@ -213,9 +299,9 @@ export default function LobbyScreen() {
               playerName.trim().length === 0 && styles.dimmed,
             ]}
             onPress={handleSubmitName}
-            disabled={playerName.trim().length === 0}
+            disabled={playerName.trim().length === 0 || connecting}
           >
-            <Text style={styles.primaryButtonText}>CONTINUE</Text>
+            <Text style={styles.primaryButtonText}>{connecting ? "CONNECTING..." : "CONTINUE"}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -233,25 +319,25 @@ export default function LobbyScreen() {
 
         <View style={styles.codeBlock}>
           <Text style={styles.codeLabel}>ROOM CODE</Text>
-          <Text style={styles.codeValue}>{roomCode}</Text>
+          <Text style={styles.codeValue}>{roomCode ?? "------"}</Text>
         </View>
 
         <View style={styles.playerList}>
           <Text style={styles.playerListLabel}> ({roster.length}) PLAYERS</Text>
           <FlatList
             data={roster}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.botID ?? item.name}
             renderItem={renderPlayer}
             ListFooterComponent={renderAddBotButton}
           />
         </View>
         {isHost ? (
           <TouchableOpacity
-            style={[styles.primaryButton, roster.length === 1 && styles.dimmed]}
+            style={[styles.primaryButton, (roster.length < 2 || gameStarting) && styles.dimmed]}
             onPress={handleStartGame}
-            disabled = {roster.length === 1}
+            disabled = {roster.length < 2 || gameStarting}
           >
-            <Text style={styles.primaryButtonText}>START GAME</Text>
+            <Text style={styles.primaryButtonText}>{gameStarting ? "STARTING..." : "START GAME"}</Text>
           </TouchableOpacity>
         ) : (
           <Text style={styles.waitingText}>Waiting for host to start...</Text>
@@ -356,13 +442,14 @@ const styles = StyleSheet.create({
     placeholderTextColor: Colors.text.muted,
   },
   removeBotButton: {
-    alignItems: "flex-end",
-    borderRadius: 5,
-    borderWidth: 1,
+    width: "8%",
+    borderRadius: Radius.badge,
+    borderWidth: 0.75,
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.xs,
   },
   removeBotText: {
+    textAlign: "center",
     color: Colors.border.danger,
     fontSize: Typography.size.body,
     fontWeight: Typography.weight.semiBold,

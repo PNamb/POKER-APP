@@ -1,6 +1,6 @@
 import { useAudioPlayer } from "expo-audio";
 import { useCallback, useEffect, useRef } from "react";
-import { useMusic } from "@/contexts/MusicContext";
+import { useApp } from "@/contexts/AppContext";
 
 const SOUNDS = {
   deal: require("@/assets/sounds/deal.wav"),
@@ -12,7 +12,7 @@ const SOUNDS = {
 };
 
 export function useSoundEffects(state) {
-  const { sfxVolume } = useMusic()
+  const { sfxVolume } = useApp()
   
   const players = {
     deal: useAudioPlayer(SOUNDS.deal),

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { cardRank, cardSuit } from "../game/deck";
 import { SUIT_PATHS, FACE_PATHS } from "@/assets/SVG-icons";
-import { useMusic } from "@/contexts/MusicContext";
+import { useApp } from "@/contexts/AppContext";
 import { Colors, Radius } from "@/constants/theme";
 
 const RED_SUITS = ["hearts", "diamonds"];
@@ -121,7 +121,10 @@ function FaceIcon({ face, size, color }) {
 }
 
 export default function Card({ card, rank, suit, faceUp = true, width = 80 }) {
-  const {fourColorDeck} = useMusic()
+  const {fourColorDeck} = useApp()
+
+  const isHidden = card === null || card === undefined && rank === undefined && suit === undefined
+  const effectiveFaceUp = faceUp && !isHidden
 
   const rankStr = card !== undefined ? cardRank(card) : String(rank);
   const suitStr = card !== undefined ? cardSuit(card) : suit;
@@ -136,7 +139,7 @@ export default function Card({ card, rank, suit, faceUp = true, width = 80 }) {
   const isFace = FACE_RANKS.includes(rankStr);
   const isAce = rankStr === "A";
 
-  if (!faceUp) {
+  if (!effectiveFaceUp) {
     //if the card is face down
     return (
       <View

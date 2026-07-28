@@ -6,9 +6,10 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  TextInput,
 } from "react-native";
 import Slider from "@react-native-community/slider";
-import { useMusic } from "@/contexts/MusicContext";
+import { useApp } from "@/contexts/AppContext";
 import {useHaptics} from "@/hooks/useHaptics"
 
 function Section({title, children}) {
@@ -74,6 +75,31 @@ function LevelRow({label, value, onChange, OPTIONS}) {
   )
 }
 
+function ValueRow({label, fields}) {
+  //fields: [{key, value, onChange, placeHolder, keyboardType, prefix}]
+  return (
+    <View style = {styles.row}>
+      <Text style = {styles.rowLabel}>{label}</Text>
+      <View style = {styles.valueFieldsWrap}>
+        {fields.map((f) => (
+          <View key = {f.key} style = {styles.valueFieldGroup}>
+            {f.prefix && <Text style = {styles.valueFieldPrefix}>{f.prefix}</Text>}
+            <TextInput
+              style = {styles.valueField}
+              value = {f.value}
+              onChangeText = {f.onChange}
+              placeholder = {f.placeHolder}
+              placeholderTextColor = {Colors.text.muted}
+              keyboardType = {f.keyboardType ?? "number-pad"}
+              autoCorrect = {false}
+            />
+          </View>
+        ))}
+      </View>
+    </View>
+  )
+}
+
 const BOT_OPTIONS = [
   {key: "easy", label: "Easy"},
   {key: "medium", label: "Medium"},
@@ -103,8 +129,12 @@ export default function SettingsScreen() {
       setBotDifficulty,
       hapticLevel,
       setHapticLevel,
+      startingChips,
+      setStartingChips,
+      startingBigBlind,
+      setStartingBigBlind,
       persistVolumeSettings
-    } = useMusic()
+    } = useApp()
 
     const handleBack = () => {
         //for back button - currently unused
@@ -131,6 +161,17 @@ export default function SettingsScreen() {
 
             <Section title = "Table">
               <ToggleRow label = "Four Color Deck" value = {fourColorDeck} onChange = {(v) => {fireHaptics(); setFourColorDeck(v)}} />
+              <ValueRow label = "Chips and Blinds" fields = {[{
+                key: "chips",
+                value: startingChips,
+                onChange: setStartingChips,
+                placeholder: "500"
+              }, {
+                key: "Blind",
+                value: startingBigBlind,
+                onChange: setStartingBigBlind,
+                placeholder: "20"
+              }]} />
               <LevelRow label = "Bot Difficulty" value = {botDifficulty} onChange = {(v) => {fireHaptics(); setBotDifficulty(v)}} OPTIONS = {BOT_OPTIONS} />
             </Section>
         </View>
@@ -240,5 +281,30 @@ const styles = StyleSheet.create({
   segmentTextActive: {
     color: Colors.text.primary,
     fontWeight: Typography.weight.semiBold
+  },
+  valueFieldsWrap: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+    marginLeft: "auto"
+  },
+  valueFieldGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs
+  },
+  valueFieldPrefix: {
+    color: Colors.text.secondary,
+    fontSize: Typography.size.label
+  },
+  valueField: {
+    width: 56,
+    textAlign: "center",
+    color: Colors.text.primary,
+    fontSize: Typography.size.button,
+    borderWidth: 0.5,
+    borderColor: Colors.border.medium,
+    borderRadius: Radius.badge,
+    paddingVertical: Spacing.xs,
+    backgroundColor: "#1e1e1e"
   }
 })

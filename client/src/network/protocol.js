@@ -11,7 +11,7 @@ export const MessageType = {
     PING: "ping", //{}
 
     //host -> client(s)
-    JOIN_ACCEPTED: "join_accepted", //{playerIndex, roomCode}
+    JOIN_ACCEPTED: "join_accepted", //{roomCode}
     JOIN_REJECTED: "join_rejected", //{reason}
     ROSTER_UPDATE: "roster_update", //{players: [{id, name, isBot, connected, isHost}]}
     STATE_UPDATE: "state_update", //{state}
@@ -22,7 +22,7 @@ export const MessageType = {
 }
 
 export const ErrorCode = {
-    UNKOWN_PLAYER: "unknown_player",
+    UNKNOWN_PLAYER: "unknown_player",
     NOT_YOUR_TURN: "not_your_turn",
     ILLEGAL_ACTION: "illegal_action",
     ROOM_FULL: "room_full",
@@ -30,6 +30,8 @@ export const ErrorCode = {
     GAME_ALREADY_STARTED: "game_already_started",
     INTERNAL_ERROR: "internal_error"
 }
+
+export const PROTOCOL_VERSION = 1
 
 export function makeMessage(type, payload) {
     return {v: PROTOCOL_VERSION, type, payload, timestamp: Date.now()}

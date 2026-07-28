@@ -8,7 +8,7 @@ import {
   StyleSheet,
   TextInput,
 } from "react-native";
-import { useMusic } from "../contexts/MusicContext";
+import { useApp } from "../contexts/AppContext";
 import {useHaptics} from "../hooks/useHaptics"
 
 function StatRow({label, value}) {
@@ -31,7 +31,7 @@ export default function ProfileScreen() {
         handsPlayed,
         handsWon,
         biggestPot,
-    } = useMusic()
+    } = useApp()
 
     const winRate = handsPlayed > 0 ? `${Math.round(handsWon / handsPlayed * 100)}%` : "--"
 
