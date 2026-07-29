@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useState, useCallback, useRef} from "react";
+import React, {createContext, useContext, useState, useCallback, useRef, useEffect} from "react";
 import {HostSession} from "../network/HostSession"
 import { HostSessionAdapter } from "../network/HostSessionAdapter";
 import { ClientSession } from "../network/ClientSession";
@@ -113,15 +113,18 @@ export function NetworkSessionProvider({children}) {
         return newClientSession
     }, [])
 
+    const sessionRef = useRef(session)
+    useEffect(() => {sessionRef.current = session}, [session])
+
     const endSession = useCallback(() => {
-        session?.leave()
+        sessionRef.current?.leave()
         signalingStopRef.current?.()
         signalingStopRef.current = null
         channelsRef.current.clear()
         setHostSession(null)
         setSession(null)
         setRole(null)
-    }, [session])
+    }, [])
 
     return (
         <NetworkSessionContext.Provider

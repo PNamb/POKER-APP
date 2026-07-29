@@ -13,7 +13,7 @@ export default function Hand({
     <View style={[styles.hand, style]}>
       {cards.map((card, i) => (
         <View
-          key={card}
+          key={i}
           style={[
             styles.cardWrapper,
             i > 0 && { marginLeft: -cardWidth * 0.2 },

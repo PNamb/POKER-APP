@@ -4,7 +4,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useGameState } from "../hooks/useGameState";
 import { useSoundEffects } from "../hooks/useSoundEffects";
-import { useNetworkSession } from "@/contexts/NetworkSessionContext";
 import CommunityCards from "../components/CommunityCards";
 import PotDisplay from "../components/PotDisplay";
 import PlayerSeat from "../components/PlayerSeat";
@@ -13,6 +12,7 @@ import ActionBar from "../components/ActionBar";
 import { Colors, Radius, Spacing, Typography } from "../constants/theme";
 import { nextActiveIndex } from "@/game/game-engine";
 import { useHaptics } from "@/hooks/useHaptics";
+import { useNetworkSession } from "@/contexts/NetworkSessionContext";
 
 const {height: SCREEN_HEIGHT} = Dimensions.get("window")
 
@@ -34,6 +34,8 @@ export default function GameScreen() {
   const startingChips = Number(params.startingChips) || 500;
   const bigBlind = Number(params.bigBlind) || 20;
 
+  const {endSession, session, hostSession} = useNetworkSession()
+  
   const {
     state,
     localPlayerIndex,
@@ -60,6 +62,12 @@ export default function GameScreen() {
     setIsAdvancing(false)
   }, [state?.handNumber])
 
+  useEffect(() => {
+    return () => {
+      endSession()
+    }
+  }, [endSession])
+
   const handleLeave = () => {
     router.push("/");
   };
@@ -74,6 +82,7 @@ export default function GameScreen() {
   const handleEndGame = () => {
     fireHaptics()
     if (mode === "bot") {
+      endSession()
       router.push("/");
       return;
     }
@@ -191,7 +200,7 @@ export default function GameScreen() {
 
                   <TouchableOpacity style = {[styles.endRoundButton, {backgroundColor: Colors.border.danger}]} onPress={handleEndGame}>
                     <Text style={styles.endGameButton}>
-                      END HAND
+                      END GAME
                     </Text>
                   </TouchableOpacity>
                   )}

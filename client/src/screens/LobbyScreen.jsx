@@ -30,6 +30,7 @@ export default function LobbyScreen() {
   const params = useLocalSearchParams(); //for getting "router.push(...)" information from other screens
 
   const isHost = params.isHost === "true";
+  console.log("[Lobby] render — params.isHost:", params.isHost, typeof params.isHost, "-> isHost:", isHost)
   const joinedRoomCode = params.roomCode; //present when joining, not when hosting
 
   const [error, setError] = useState(null);
@@ -122,15 +123,19 @@ export default function LobbyScreen() {
   };
 
   useEffect(() => {
+    console.log("[Lobby] roster effect running. session:", !!session, "hostSession:", !!hostSession, "isHost:", isHost)
     if (!session) return
     const handleRoster = (payload) => {
+      console.log("[Lobby] handleRoster called with:", payload)
       setRoster(payload.players ?? [])
       if (payload.roomCode) setRoomCode(payload.roomCode)
     }
 
     if (isHost && hostSession) {
+      console.log("[Lobby] taking host branch")
       hostSession.setOnRosterChange(handleRoster)
     } else {
+      console.log("[Lobby] taking adapter/client branch")
       session.setOnRosterChange?.(handleRoster)
     }
 
@@ -226,7 +231,7 @@ export default function LobbyScreen() {
             <TextInput
               style={[styles.input, { backgroundColor: Colors.item.chips }]}
               placeholder="---"
-              value={chips}
+              value={String(chips)}
               onChangeText={setChips}
               keyboardType="number-pad"
               autoCorrect={false}
@@ -240,7 +245,7 @@ export default function LobbyScreen() {
                 { backgroundColor: Colors.background.cardBack },
               ]}
               placeholder="--"
-              value={blind}
+              value={String(blind)}
               onChangeText={setBlind}
               keyboardType="number-pad"
               autoCorrect={false}
@@ -326,6 +331,7 @@ export default function LobbyScreen() {
           <Text style={styles.playerListLabel}> ({roster.length}) PLAYERS</Text>
           <FlatList
             data={roster}
+            extraData={chips, blind}
             keyExtractor={(item) => item.botID ?? item.name}
             renderItem={renderPlayer}
             ListFooterComponent={renderAddBotButton}

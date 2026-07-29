@@ -58,10 +58,14 @@ export class HostSession {
 
     setOnStateChange(fn) {
         this._onStateChange = fn
+        if (this.state) {
+            fn(this.state)
+        }
     }
 
     setOnRosterChange(fn) {
         this._onRosterChange = fn
+        fn(this._rosterPayload())
     }
 
     setOnGameStarted(fn) {
@@ -248,8 +252,8 @@ export class HostSession {
         this.sendToConnection(connectionID, makeErrorMessage(code, message))
     }
 
-    _broadcastRoster() {
-        const payload = {
+    _rosterPayload() {
+        return {
             players: this.roster.map((p) => ({
                 name: p.name,
                 isBot: p.isBot,
@@ -258,6 +262,10 @@ export class HostSession {
             })),
             roomCode: this.roomCode
         }
+    }
+
+    _broadcastRoster() {
+        const payload = this._rosterPayload()
         this._onRosterChange?.(payload)
         this._broadcastToAll(makeMessage(MessageType.ROSTER_UPDATE, payload))
     }

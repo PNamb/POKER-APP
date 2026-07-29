@@ -87,6 +87,24 @@ async function _handleNewJoiner(
     console.log("Host: handling new joiner", clientID, Date.now())
     try {
         const pc = new RTCPeerConnection(RTC_CONFIG)
+        pc.addEventListener("icecandidate", (event) => {
+        if (event.candidate) {
+            console.log("[ICE candidate]", event.candidate.type, event.candidate.candidate)
+        } else {
+            console.log("[ICE candidate] gathering complete")
+        }
+        })
+
+        pc.addEventListener("iceconnectionstatechange", () => {
+        console.log("[ICE] state:", pc.iceConnectionState)
+        })
+
+        pc.addEventListener("icegatheringstatechange", () => {
+        console.log("[ICE] gathering state:", pc.iceGatheringState)
+        })
+        pc.addEventListener("iceconnectionstatechange", () => {
+        console.log("[ICE] connection state:", pc.iceConnectionState)
+        })
         peerConnections.set(clientID, pc)
 
         const pendingRemoteCandidates = []
@@ -148,6 +166,24 @@ export async function joinRoom(roomCode, clientID, {onConnected, onFailed}) {
     }
 
     const pc = new RTCPeerConnection(RTC_CONFIG)
+    pc.addEventListener("icecandidate", (event) => {
+    if (event.candidate) {
+        console.log("[ICE candidate]", event.candidate.type, event.candidate.candidate)
+    } else {
+        console.log("[ICE candidate] gathering complete")
+    }
+    })
+
+    pc.addEventListener("iceconnectionstatechange", () => {
+    console.log("[ICE] state:", pc.iceConnectionState)
+    })
+
+    pc.addEventListener("icegatheringstatechange", () => {
+    console.log("[ICE] gathering state:", pc.iceGatheringState)
+    })
+    pc.addEventListener("iceconnectionstatechange", () => {
+    console.log("[ICE] connection state:", pc.iceConnectionState)
+    })
     const pendingRemoteCandidates = []
     let remoteDescriptionSet = false
     let unsub = () => {}
@@ -189,6 +225,7 @@ export async function joinRoom(roomCode, clientID, {onConnected, onFailed}) {
 
             if (data.answer && !remoteDescriptionSet) {
                 console.log("Applying answer", Date.now())
+                remoteDescriptionSet = true
                 try {
                     await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(data.answer)))
                     remoteDescriptionSet = true

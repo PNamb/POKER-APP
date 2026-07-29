@@ -9,9 +9,14 @@ export class HostSessionAdapter {
         this.joined = true
 
         this._onStateChange = null
+        this._onRosterChange = null
         
         this.hostSession.setOnStateChange((state) => {
             this._onStateChange?.(state)
+        })
+
+        this.hostSession.setOnRosterChange((payload) => {
+            this._onRosterChange?.(payload)
         })
     }
 
@@ -56,6 +61,13 @@ export class HostSessionAdapter {
 
     setOnStateChange(fn) {
         this._onStateChange = fn
+        if (this.hostSession.state) {
+            fn(this.hostSession.state)
+        }
+    }
+
+    setOnRosterChange(fn) {
+        this._onRosterChange = fn
     }
 
     setOnGameStarted(fn) {

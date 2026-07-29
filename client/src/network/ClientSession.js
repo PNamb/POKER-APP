@@ -31,6 +31,9 @@ export class ClientSession {
 
     setOnStateChange(fn) {
         this._onStateChange = fn
+        if (this.state) {
+            fn(this.state)
+        }
     }
 
     setOnRosterChange(fn) {
@@ -47,6 +50,9 @@ export class ClientSession {
 
     setOnGameStarted(fn) {
         this._onGameStarted = fn
+        if (this.started && this.playerIndex !== null) {
+            fn({playerIndex: this.playerIndex})
+        }
     }
 
     setOnError(fn) {
@@ -134,7 +140,7 @@ export class ClientSession {
     _handleRosterUpdate(payload) {
         this.roster = payload.players
         this.roomCode = payload.roomCode ?? this.roomCode
-        this._onRosterChange?.(this.roster)
+        this._onRosterChange?.({players: this.roster, roomCode: this.roomCode})
     }
 
     _handleStateUpdate({state}) {
