@@ -28,7 +28,7 @@ function joinerDoc(roomCode, clientID) {
 }
 
 //host-side; announces room and listens for joiners
-export async function hostRoom(roomCode, {onJoinerConnected, onJoinerFailed}) {
+export async function hostRoom(roomCode, {onJoinerConnected, onJoinerFailed, onJoinerDisconnected}) {
     console.log("!!!!! hostRoom CALLED !!!!!", roomCode)
     await setDoc(roomDoc(roomCode), {
         hostPresent: true,
@@ -51,7 +51,8 @@ export async function hostRoom(roomCode, {onJoinerConnected, onJoinerFailed}) {
                     peerConnections,
                     unsubscribers,
                     onJoinerConnected,
-                    onJoinerFailed
+                    onJoinerFailed,
+                    onJoinerDisconnected
                 })
             })
         },
@@ -82,7 +83,7 @@ async function _handleNewJoiner(
     roomCode,
     clientID,
     joinerData,
-    {peerConnections, unsubscribers, onJoinerConnected, onJoinerFailed}
+    {peerConnections, unsubscribers, onJoinerConnected, onJoinerFailed, onJoinerDisconnected}
 ) {
     console.log("Host: handling new joiner", clientID, Date.now())
     try {
@@ -102,13 +103,17 @@ async function _handleNewJoiner(
         pc.addEventListener("icegatheringstatechange", () => {
         console.log("[ICE] gathering state:", pc.iceGatheringState)
         })
-        pc.addEventListener("iceconnectionstatechange", () => {
-        console.log("[ICE] connection state:", pc.iceConnectionState)
-        })
         peerConnections.set(clientID, pc)
 
         const pendingRemoteCandidates = []
         let remoteDescriptionSet = false
+
+        let disconnectReported = false
+        const reportDisconnect = (reason) => {
+            if (disconnectReported) return
+            disconnectReported = true
+            onJoinerDisconnected?.({clientID, reason})
+        }
 
         pc.addEventListener("icecandidate", (event) => {
             if (!event.candidate) return
@@ -117,6 +122,13 @@ async function _handleNewJoiner(
             }).catch(() => {
 
             })
+        })
+
+        pc.addEventListener("iceconnectionstatechange", () => {
+        console.log("[ICE] connection state:", pc.iceConnectionState)
+        if (pc.iceConnectionState === "failed" || pc.iceConnectionState === "closed") {
+            reportDisconnect(pc.iceConnectionState)
+        }
         })
 
         pc.addEventListener("datachannel", (event) => {
@@ -128,6 +140,7 @@ async function _handleNewJoiner(
                 peerConnections.delete(clientID)
                 unsubscribers.get(clientID)?.()
                 unsubscribers.delete(clientID)
+                reportDisconnect("channel_closed")
             })
         })
 
@@ -158,7 +171,7 @@ async function _handleNewJoiner(
 }
 
 //client side; creates offers and waits for the host's answer
-export async function joinRoom(roomCode, clientID, {onConnected, onFailed}) {
+export async function joinRoom(roomCode, clientID, {onConnected, onFailed, onDisconnected}) {
     const roomSnap = await getDoc(roomDoc(roomCode))
     if (!roomSnap.exists() || !roomSnap.data()?.hostPresent) {
         onFailed?.({error: new Error("Room not Found")})
@@ -181,8 +194,19 @@ export async function joinRoom(roomCode, clientID, {onConnected, onFailed}) {
     pc.addEventListener("icegatheringstatechange", () => {
     console.log("[ICE] gathering state:", pc.iceGatheringState)
     })
+
+    let disconnectReported = false
+    const reportDisconnect = (reason) => {
+        if (disconnectReported) return
+        disconnectReported = true
+        onDisconnected?.({reason})
+    }
+
     pc.addEventListener("iceconnectionstatechange", () => {
     console.log("[ICE] connection state:", pc.iceConnectionState)
+    if (pc.iceConnectionState === "failed" || pc.iceConnectionState === "closed") {
+        reportDisconnect(pc.iceConnectionState)
+    }
     })
     const pendingRemoteCandidates = []
     let remoteDescriptionSet = false
@@ -194,6 +218,10 @@ export async function joinRoom(roomCode, clientID, {onConnected, onFailed}) {
 
         channel.addEventListener("open", () => {
             onConnected?.({channel, pc})
+        })
+
+        channel.addEventListener("close", () => {
+            reportDisconnect("channel_closed")
         })
 
         pc.addEventListener("icecandidate", (event) => {

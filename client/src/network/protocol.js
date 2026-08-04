@@ -15,7 +15,9 @@ export const MessageType = {
     JOIN_REJECTED: "join_rejected", //{reason}
     ROSTER_UPDATE: "roster_update", //{players: [{id, name, isBot, connected, isHost}]}
     STATE_UPDATE: "state_update", //{state}
+    SETTINGS_UPDATE: "settings_update",
     GAME_STARTED: "game_started", //{}
+    GAME_ENDED: "game_ended", //{}
     ERROR: "error", //{message, code}
     PLAYER_LEFT: "player_left", //{playerIndex}
     PONG: "pong" //{}

@@ -2,7 +2,8 @@ import {
     createGame,
     advancePhase,
     validate,
-    applyAction
+    applyAction,
+    fold
 } from "../game/game-engine"
 import {toPublicState} from "./networkState"
 import {
@@ -28,11 +29,13 @@ function generateRoomCode() {
 
 export class HostSession {
     //sendToConnection: (connectionId, message) => void
-    constructor({sendToConnection, hostName = "Host"}) {
+    constructor({sendToConnection, closeConnection, hostName = "Host", startingChips, bigBlind}) {
         this.sendToConnection = sendToConnection
+        this.closeConnection = closeConnection
         this.roomCode = generateRoomCode()
         this.state = null //null until startGame() is called
         this.started = false
+        this.settings = {startingChips: startingChips, bigBlind: bigBlind}
 
         //each roster entry: {connectionID, name, isBot, botID}
         this.roster = [{connectionID: "host", name: hostName, isBot: false}]
@@ -53,7 +56,12 @@ export class HostSession {
         //called when the host playerIndex is known
         this._onGameStarted = null
 
+        this._onSettingsChange = null
+
         this._onError = null
+
+        this._onPlayerDisconnected = null
+
     }
 
     setOnStateChange(fn) {
@@ -76,8 +84,28 @@ export class HostSession {
         }
     }
 
+    setOnSettingsChange(fn) {
+        this._onSettingsChange = fn
+        fn(this.settings)
+    }
+
+    updateSettings({startingChips, bigBlind}) {
+        if (this.started) return
+        this.settings = {
+            startingChips: startingChips ?? this.settings.startingChips,
+            bigBlind: bigBlind ?? this.settings.bigBlind
+        }
+
+        this._onSettingsChange?.(this.settings)
+        this._broadcastToAll(makeMessage(MessageType.SETTINGS_UPDATE, this.settings))
+    }
+
     setOnError(fn) {
         this._onError = fn
+    }
+
+    setOnPlayerDisconnected(fn) {
+        this._onPlayerDisconnected = fn
     }
 
     handleJoinRequest(connectionID, {name}) {
@@ -97,6 +125,7 @@ export class HostSession {
         this.roster.push({connectionID, name: trimmed, isBot: false})
 
         this.sendToConnection(connectionID, makeMessage(MessageType.JOIN_ACCEPTED, {roomCode: this.roomCode}))
+        this.sendToConnection(connectionID, makeMessage(MessageType.SETTINGS_UPDATE, this.settings))
 
         this._broadcastRoster()
     }
@@ -114,24 +143,99 @@ export class HostSession {
         this._broadcastRoster()
     }
 
-    handleLeave(connectionID) {
+    handleLeave(connectionID, {viaDisconnect = false} = {}) {
+        console.log("[DEBUG] handleLeave called", connectionID, "viaDisconnect:", viaDisconnect, "started:", this.started)
         if (!this.started) {
+            const wasPresent = this.roster.some((p) => p.connectionID === connectionID)
             this.roster = this.roster.filter((p) => p.connectionID !== connectionID)
-            this._broadcastRoster()
+            if (wasPresent) {
+                this._broadcastRoster()
+            }
+
+            const playerIndex = this.connectionToPlayerIndex.get(connectionID)
+            console.log("[DEBUG] resolved playerIndex:", playerIndex)
+            if (playerIndex !== undefined) {
+                this.connectionToPlayerIndex.delete(connectionID)
+
+                if (this.playerIndexToConnection.get(playerIndex) === connectionID) {
+                    this.playerIndexToConnection.delete(playerIndex)
+                }
+            }
+
+            this._teardownConnection(connectionID)
             return
         }
 
         //mid-game leave: mark disconnected, so the playerIndex states stay valid
         const playerIndex = this.connectionToPlayerIndex.get(connectionID)
-        if (playerIndex === undefined) return
-
-        this.state = {
-            ...this.state,
-            players: this.state.players.map((p, i) => i === playerIndex ? {...p, connected: false} : p)
+        if (playerIndex === undefined) {
+            this._teardownConnection(connectionID)
+            return
         }
 
-        this._broadcastState()
-        this._broadcastToAllExcept(connectionID, makeMessage(MessageType.PLAYER_LEFT, {playerIndex}))
+        const player = this.state.players[playerIndex]
+        const alreadyDisconnected = player?.connected === false
+        console.log("[DEBUG] player state:", {folded: player.folded, allIn: player.allIn, connected: player.connected, phase: this.state.phase})
+
+        if (!alreadyDisconnected) {
+            this.state = {
+                ...this.state,
+                players: this.state.players.map((p, i) => i === playerIndex ? {...p, connected: false} : p)
+            }
+
+            const stillInHand = this.state.phase !== "waiting" && this.state.phase !== "showdown" && !player?.folded && !player?.allIn
+
+            if (stillInHand) {
+
+                console.log("[DEBUG] PRE-FOLD state:", JSON.stringify({
+                    activeIndex: this.state.activeIndex,
+                    bigBlindIndex: this.state.bigBlindIndex,
+                    bigBlindActed: this.state.bigBlindActed,
+                    currentBet: this.state.currentBet,
+                    players: this.state.players.map(p => ({name: p.name, bet: p.bet, folded: p.folded, allIn: p.allIn, chips: p.chips}))
+                }))
+
+                try {
+                    this.state = fold(this.state, playerIndex)
+
+                    console.log("[DEBUG] POST-FOLD state:", JSON.stringify({
+                        activeIndex: this.state.activeIndex,
+                        players: this.state.players.map(p => ({name: p.name, bet: p.bet, folded: p.folded, allIn: p.allIn, chips: p.chips}))
+                    }))
+
+                } catch (e) {
+                    console.warn("[HostSession] auto-fold for disconnected player failed", playerIndex, e.message)
+                }
+            }
+
+            this._broadcastState()
+            this._broadcastToAllExcept(connectionID, makeMessage(MessageType.PLAYER_LEFT, {playerIndex}))
+
+            this._onPlayerDisconnected?.({
+                playerIndex, 
+                name: this.state.players[playerIndex]?.name,
+                viaDisconnect
+            })
+        }
+
+        this._teardownConnection(connectionID)
+        this.connectionToPlayerIndex.delete(connectionID)
+        if (this.playerIndexToConnection.get(playerIndex) === connectionID){
+            this.playerIndexToConnection.delete(playerIndex)
+        }
+    }
+
+    handleDisconnect(connectionID) {
+        this.handleLeave(connectionID, {viaDisconnect: true})
+    }
+
+    _teardownConnection(connectionID) {
+        if (connectionID === HOST_CONNECTION_ID) return
+        try {
+            this.closeConnection?.(connectionID)
+        } catch (e) {
+            console.warn("[HostSession] failed to close connection for ", connectionID, e)
+        }
     }
 
     startGame({startingChips = 500, bigBlind = 20} = {}) {
@@ -170,6 +274,22 @@ export class HostSession {
             this._onGameStarted?.({playerIndex: hostPlayerIndex})
         }
         this._broadcastState()
+    }
+
+    endGame() {
+        if (!this.state) return
+        this._broadcastToAll(makeMessage(MessageType.GAME_ENDED, {}))
+    }
+
+    closeAllConnections() {
+        for (const connectionID of this.connectionToPlayerIndex.keys()) {
+            this._teardownConnection(connectionID)
+        }
+        for (const entry of this.roster) {
+            if (entry.connectionID && entry.connectionID !== HOST_CONNECTION_ID) {
+                this._teardownConnection(entry.connectionID)
+            }
+        }
     }
 
     handleActionRequest(connectionID, {action}) {

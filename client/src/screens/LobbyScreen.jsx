@@ -55,6 +55,8 @@ export default function LobbyScreen() {
   const [chips, setChips] = useState(startingChips); //new
   const [blind, setBlind] = useState(startingBigBlind); //new
 
+  const settingsDebounceRef = useRef(null)
+
   const startedRef = useRef()
 
   const navInputsRef = useRef({roomCode, chips, blind, roster, playerName, isHost})
@@ -67,6 +69,7 @@ export default function LobbyScreen() {
   useEffect(() => {
     return () => {
       endSession()
+      clearTimeout(settingsDebounceRef.current)
     }
   }, [endSession])
 
@@ -85,7 +88,11 @@ export default function LobbyScreen() {
 
     try {
       if (isHost) {
-        const newHostSession = await startHosting({hostName: trimmed})
+        const newHostSession = await startHosting({
+          hostName: trimmed,
+          startingChips: parseInt(chips, 10) || 500,
+          bigBlind: parseInt(blind, 10) || 20
+        })
         setRoomCode(newHostSession.roomCode)
       } else {
         const clientSession = await startJoining({
@@ -137,6 +144,13 @@ export default function LobbyScreen() {
     } else {
       console.log("[Lobby] taking adapter/client branch")
       session.setOnRosterChange?.(handleRoster)
+    }
+
+    if (!isHost) {
+      session.setOnSettingsChange?.(({startingChips: hostChips, bigBlind: hostBlind}) => {
+        if (hostChips !== undefined) setChips(hostChips)
+        if (hostBlind !== undefined) setBlind(hostBlind)
+      })
     }
 
     session.setOnGameStarted?.(() => {
@@ -232,7 +246,14 @@ export default function LobbyScreen() {
               style={[styles.input, { backgroundColor: Colors.item.chips }]}
               placeholder="---"
               value={String(chips)}
-              onChangeText={setChips}
+              onChangeText={(text) => {
+                setChips(text)
+                if (!isHost) return
+                clearTimeout(settingsDebounceRef.current)
+                settingsDebounceRef.current = setTimeout(() => {
+                  hostSession?.updateSettings({startingChips: parseInt(text, 10) || 0, bigBlind: parseInt(blind, 10) || 0})
+                }, 400);
+              }}
               keyboardType="number-pad"
               autoCorrect={false}
               editable = {isHost}
@@ -246,7 +267,14 @@ export default function LobbyScreen() {
               ]}
               placeholder="--"
               value={String(blind)}
-              onChangeText={setBlind}
+              onChangeText={(text) => {
+                setBlind(text)
+                if (!isHost) return
+                clearTimeout(settingsDebounceRef.current)
+                settingsDebounceRef.current = setTimeout(() => {
+                  hostSession?.updateSettings({startingChips: parseInt(chips, 10) || 0, bigBlind: parseInt(text, 10) || 0})
+                }, 400);
+              }}
               keyboardType="number-pad"
               autoCorrect={false}
               editable={isHost}
@@ -331,7 +359,7 @@ export default function LobbyScreen() {
           <Text style={styles.playerListLabel}> ({roster.length}) PLAYERS</Text>
           <FlatList
             data={roster}
-            extraData={chips, blind}
+            extraData={[chips, blind]}
             keyExtractor={(item) => item.botID ?? item.name}
             renderItem={renderPlayer}
             ListFooterComponent={renderAddBotButton}

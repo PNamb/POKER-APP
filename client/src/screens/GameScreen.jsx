@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, BackHandler } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useGameState } from "../hooks/useGameState";
@@ -68,9 +68,44 @@ export default function GameScreen() {
     }
   }, [endSession])
 
-  const handleLeave = () => {
-    router.push("/");
-  };
+  useEffect(() => {
+    if (mode !== "online" || isHost || !session) return
+    session.setOnGameEnded?.(() => {
+      endSession()
+      router.replace("/")
+    })
+    
+  }, [mode, isHost, endSession, router])
+
+  // const gameOverBroadcastRef = useRef(false)
+  // useEffect(() => {
+  //   if (mode !== "online" || !isHost || !hostSession || !state) return
+
+  //   const playersWithChips = state.players.filter((p) => p.chips > 0).length
+  //   const gameIsOver = state.phase === "showdown" && playersWithChips < 2
+
+  //   if (gameIsOver && !gameOverBroadcastRef.current) {
+  //     gameOverBroadcastRef.current = true
+  //     hostSession.endGame()
+  //   }
+
+  //   if (!gameIsOver) {
+  //     gameOverBroadcastRef.current = false
+  //   }
+  // }, [mode, isHost, hostSession, state])
+
+  const handleLeave = useCallback(() => {
+    endSession()
+    router.replace("/");
+  }, [endSession, router]);
+
+  useEffect(() => {
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      handleLeave()
+      return true
+    })
+    return () => sub.remove()
+  }, [handleLeave])
 
   const handleNextHand = () => {
     if (isAdvancing) return
@@ -83,12 +118,16 @@ export default function GameScreen() {
     fireHaptics()
     if (mode === "bot") {
       endSession()
-      router.push("/");
+      router.replace("/");
       return;
     }
     if (mode === "online") {
       //TODO - broadcast "return to lobby" to all connected clients via socket-client.js
-      router.push({ pathname: "/lobby", params: { isHost: isHost ? "true" : false, roomCode } });
+      if (isHost) {
+        hostSession?.endGame()
+      }
+      endSession()
+      router.replace("/")
     }
   };
 
@@ -106,7 +145,7 @@ export default function GameScreen() {
   const localPlayer = state.players[localPlayerIndex];
   const opponents = state.players.filter((_, i) => i !== localPlayerIndex);
   const bettingPhase = state.phase !== "waiting" && state.phase !== "showdown";
-  const playersWithChips = state.players.filter((p) => p.chips > 0).length;
+  const playersWithChips = state.players.filter((p) => p.chips > 0 && p.connected !== false).length;
   const isGameOver = state.phase === "showdown" && playersWithChips < 2;
 
   const firstToActIndex = bettingPhase
@@ -168,9 +207,7 @@ export default function GameScreen() {
 
         <View style = {styles.opponentRow} pointerEvents = "none">
           {opponents.length > 0 ? (
-            <View style = {{opacity: 0}}>
-              {renderOpponent(opponents[0])}
-            </View>
+            <View style = {[styles.opponentSpacer, {opacity: 0}]} />
           ): null}
         </View>
 
@@ -194,7 +231,7 @@ export default function GameScreen() {
               {isGameOver ? (
                 <>
                   <Text style={styles.gameOverText}>
-                    {state.players.find((p) => p.chips > 0)?.name} wins the game
+                    {state.players.find((p) => p.chips > 0 && p.connected !== false)?.name} wins the game
                   </Text>
                   {(mode === "bot" || isHost) && (
 
@@ -278,6 +315,10 @@ const styles = StyleSheet.create({
   },
   opponentSeat: {
     marginHorizontal: Spacing.xs,
+  },
+  opponentSpacer: {
+    width: 110,
+    height: 150
   },
   tableCenter: {
     flex: 1,

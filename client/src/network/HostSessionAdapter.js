@@ -52,6 +52,14 @@ export class HostSessionAdapter {
         )
     }
 
+    setOnSettingsChange(fn) {
+        this.hostSession.setOnSettingsChange(fn)
+    }
+
+    updateSettings(settings) {
+        this.hostSession.updateSettings(settings)
+    }
+
     leave() {
         this.hostSession.handleMessage(
             HOST_CONNECTION_ID,
@@ -72,6 +80,10 @@ export class HostSessionAdapter {
 
     setOnGameStarted(fn) {
         this.hostSession.setOnGameStarted(fn)
+    }
+
+    endGame() {
+        this.hostSession.endGame()
     }
 
     setOnError(fn) {

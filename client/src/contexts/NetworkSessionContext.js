@@ -17,12 +17,34 @@ export function NetworkSessionProvider({children}) {
     const [session, setSession] = useState(null)
 
     const channelsRef = useRef(new Map())
+    const peerConnectionsRef = useRef(new Map()) //clientID -> RTCPeerConnection
 
     const signalingStopRef = useRef(null)
 
     //start hosting a new game
-    const startHosting = useCallback(async ({hostName}) => {
+    const startHosting = useCallback(async ({hostName, startingChips, bigBlind}) => {
         console.log("!!!!! startHosting CALLED !!!!!")
+
+        const closeConnection = (connectionID) => {
+            const channel = channelsRef.current.get(connectionID)
+            try {
+                channel?.close()
+            } catch (e) {
+                console.warn("[NetworkSession] can't close channel", connectionID, e)
+            }
+            channelsRef.current.delete(connectionID)
+
+            const pc = peerConnectionsRef.current.get(connectionID)
+            try {
+                pc?.close()
+            } catch (e) {
+                console.warn("[NetworkSession] can't close peer connection", connectionID, e)
+            }
+
+            peerConnectionsRef.current.delete(connectionID)
+        }
+
+
         const newHostSession = new HostSession({
             sendToConnection: (connectionID, message) => {
                 const channel = channelsRef.current.get(connectionID)
@@ -31,7 +53,7 @@ export function NetworkSessionProvider({children}) {
                     return
                 }
                 channel.send(JSON.stringify(message))
-            }, hostName,
+            }, closeConnection, hostName, startingChips, bigBlind,
         })
         const adapter = new HostSessionAdapter(newHostSession)
         
@@ -40,8 +62,9 @@ export function NetworkSessionProvider({children}) {
         setRole("host")
 
         const {stop} = await hostRoom(newHostSession.roomCode, {
-            onJoinerConnected: ({clientID, channel}) => {
+            onJoinerConnected: ({clientID, channel, pc}) => {
                 channelsRef.current.set(clientID, channel)
+                if (pc) peerConnectionsRef.current.set(clientID, pc)
 
                 channel.addEventListener("message", (event) => {
                     try {
@@ -54,11 +77,18 @@ export function NetworkSessionProvider({children}) {
 
                 channel.addEventListener("close", () => {
                     channelsRef.current.delete(clientID)
+                    peerConnectionsRef.current.delete(clientID)
                     newHostSession.handleLeave(clientID)
                 })
             },
             onJoinerFailed: ({clientID, error}) => {
                 console.warn("[NetworkSession] joiner negotiation failed", clientID, error)
+            },
+            onJoinerDisconnected: ({clientID, reason}) => {
+                console.warn("[NetworkSession] joiner disconnected", clientID, reason)
+                channelsRef.current.delete(clientID)
+                peerConnectionsRef.current.delete(clientID)
+                newHostSession.handleDisconnect(clientID)
             }
         })
 
@@ -88,8 +118,10 @@ export function NetworkSessionProvider({children}) {
         setRole("client")
 
         const {stop} = await joinRoom(roomCode, clientID, {
-            onConnected: ({channel}) => {
+            onConnected: ({channel, pc}) => {
                 channelsRef.current.set("host", channel)
+
+                if (pc) peerConnectionsRef.current.set("host", pc)
 
                 channel.addEventListener("message", (event) => {
                     try {
@@ -105,6 +137,12 @@ export function NetworkSessionProvider({children}) {
             onFailed: ({error}) => {
                 console.warn("[NetworkSession] failed to connect to Host", error)
                 newClientSession._onJoinRejected?.({reason: "connection_failed"})
+            },
+            onDisconnected: ({reason}) => {
+                console.warn("[Network Session] disconnected from host", reason)
+                channelsRef.current.delete("host")
+                peerConnectionsRef.current.delete("host")
+                newClientSession._onGameEnded?.({reason: "host_disconnected"})
             }
         })
 
@@ -116,11 +154,17 @@ export function NetworkSessionProvider({children}) {
     const sessionRef = useRef(session)
     useEffect(() => {sessionRef.current = session}, [session])
 
+    const hostSessionRef = useRef(hostSession)
+    useEffect(() => {hostSessionRef.current = hostSession}, [hostSession])
+
     const endSession = useCallback(() => {
+        hostSessionRef.current?.closeAllConnections()
+
         sessionRef.current?.leave()
         signalingStopRef.current?.()
         signalingStopRef.current = null
         channelsRef.current.clear()
+        peerConnectionsRef.current.clear()
         setHostSession(null)
         setSession(null)
         setRole(null)

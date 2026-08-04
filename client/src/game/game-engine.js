@@ -253,7 +253,7 @@ export function createGame(playerNames, options = {}) {
 
 export function startHand(state) {
   //shuffle the deck, reset player bets and hole cards, deal hole cards, and post the blinds; returns a state
-  const activePlayers = state.players.filter((p) => p.chips > 0);
+  const activePlayers = state.players.filter((p) => p.chips > 0 && p.connected !== false);
   if (activePlayers.length < 2) {
     throw new Error(
       "Game Over: Not enough players with chips to start a hand."
@@ -267,13 +267,13 @@ export function startHand(state) {
     bet: 0,
     totalBet: 0,
     holeCards: [],
-    folded: false,
+    folded: p.connected === false,
     allIn: false,
   }));
 
   let remaining = deck;
   for (let i = 0; i < players.length; i++) {
-    if (players[i].chips === 0) continue;
+    if (players[i].chips === 0 || players[i].connected === false) continue;
     const dealt = deal(remaining, 2);
     players[i] = { ...players[i], holeCards: dealt.cards };
     remaining = dealt.remaining;

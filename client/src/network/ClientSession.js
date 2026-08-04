@@ -17,16 +17,19 @@ export class ClientSession {
 
         this.roster = [] //[{name, isBot, botID, isHost}]
         this.state = null //most recent state passed from host
+        this.settings = null
         this.lastError = null //{code, message} - most recent error
 
         this._onStateChange = null //called whenever state changes
         this._onRosterChange = null //called whenever roster changes
+        this._onSettingsChange = null
         this._onJoinAccepted = null //called whenever a join request is accepted
         this._onJoinRejected = null //called whenever a join request is rejected
         this._onGameStarted = null //called when the game starts
 
         this._onError = null //called whenever an error message is recieved
         this._onPlayerLeft = null //called whenever a player leaves mid-game
+        this._onGameEnded = null
     }
 
     setOnStateChange(fn) {
@@ -38,6 +41,13 @@ export class ClientSession {
 
     setOnRosterChange(fn) {
         this._onRosterChange = fn
+    }
+
+    setOnSettingsChange(fn) {
+        this._onSettingsChange = fn
+        if (this.settings) {
+            fn(this.settings)
+        }
     }
 
     setOnJoinAccepted(fn) {
@@ -61,6 +71,10 @@ export class ClientSession {
 
     setOnPlayerLeft(fn) {
         this._onPlayerLeft = fn
+    }
+
+    setOnGameEnded(fn) {
+        this._onGameEnded = fn
     }
 
     //Sending to Host
@@ -111,6 +125,8 @@ export class ClientSession {
                 return this._handleJoinRejected(message.payload)
             case MessageType.ROSTER_UPDATE:
                 return this._handleRosterUpdate(message.payload)
+            case MessageType.SETTINGS_UPDATE:
+                return this._handleSettingsUpdate(message.payload)
             case MessageType.STATE_UPDATE:
                 return this._handleStateUpdate(message.payload)
             case MessageType.GAME_STARTED:
@@ -119,6 +135,8 @@ export class ClientSession {
                 return this._handleError(message.payload)
             case MessageType.PLAYER_LEFT:
                 return this._handlePlayerLeft(message.payload)
+            case MessageType.GAME_ENDED:
+                return this._handleGameEnded(message.payload)
             case MessageType.PONG:
                 return
             default:
@@ -148,6 +166,11 @@ export class ClientSession {
         this._onStateChange?.(state)
     }
 
+    _handleSettingsUpdate(payload) {
+        this.settings = payload
+        this._onSettingsChange?.(payload)
+    }
+
     _handleGameStarted({playerIndex}) {
         this.started = true
         this.playerIndex = playerIndex
@@ -161,5 +184,9 @@ export class ClientSession {
 
     _handlePlayerLeft({playerIndex}) {
         this._onPlayerLeft?.(playerIndex)
+    }
+
+    _handleGameEnded(payload) {
+        this._onGameEnded?.(payload)
     }
 }

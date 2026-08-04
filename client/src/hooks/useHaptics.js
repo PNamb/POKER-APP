@@ -27,7 +27,7 @@ export function useHaptics() {
     const fireErrorHaptics = useCallback(() => {
         if (hapticLevel === "Off") return
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid)
-    })
+    }, [hapticLevel])
 
     return {fireHaptics, fireSelectionHaptics, fireErrorHaptics}
 }

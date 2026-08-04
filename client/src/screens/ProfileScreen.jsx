@@ -22,7 +22,7 @@ function StatRow({label, value}) {
 
 export default function ProfileScreen() {
     const router = useRouter()
-    const fireHaptics = useHaptics()
+    const {fireHaptics} = useHaptics()
 
     const {
         displayName,
