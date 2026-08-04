@@ -11,7 +11,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { Colors, Spacing, Typography, Radius } from "@/constants/theme";
 import Svg, { Path } from "react-native-svg";
 import { chipArt, altChipArt } from "@/assets/SVG-icons";
-import {useHaptics} from "@/hooks/useHaptics"
+import { useHaptics } from "@/hooks/useHaptics";
 import { useApp } from "@/contexts/AppContext";
 import { useNetworkSession } from "@/contexts/NetworkSessionContext";
 
@@ -26,52 +26,67 @@ function Art({ art, box, size = 35, color = "#ac2525" }) {
 export default function LobbyScreen() {
   //this is the name entering screen and waiting room
   const router = useRouter(); //for navigating
-  const {fireHaptics} = useHaptics()
+  const { fireHaptics } = useHaptics();
   const params = useLocalSearchParams(); //for getting "router.push(...)" information from other screens
 
   const isHost = params.isHost === "true";
-  console.log("[Lobby] render — params.isHost:", params.isHost, typeof params.isHost, "-> isHost:", isHost)
+  console.log(
+    "[Lobby] render — params.isHost:",
+    params.isHost,
+    typeof params.isHost,
+    "-> isHost:",
+    isHost
+  );
   const joinedRoomCode = params.roomCode; //present when joining, not when hosting
 
   const [error, setError] = useState(null);
-  const {displayName, startingChips, startingBigBlind} = useApp() 
+  const { displayName, startingChips, startingBigBlind } = useApp();
   const [playerName, setPlayerName] = useState(displayName || "");
   const [nameSubmitted, setNameSubmitted] = useState(false);
-  const [connecting, setConnecting] = useState(false)
+  const [connecting, setConnecting] = useState(false);
 
-  const {
-    hostSession,
-    session,
-    startHosting,
-    startJoining,
-    endSession
-  } = useNetworkSession()
+  const { hostSession, session, startHosting, startJoining, endSession } =
+    useNetworkSession();
 
-  const [roomCode, setRoomCode] = useState(isHost ? null : joinedRoomCode)
+  const [roomCode, setRoomCode] = useState(isHost ? null : joinedRoomCode);
 
-  const [roster, setRoster] = useState([]) //[{name, isBot, botID, isHost}]
-  const [gameStarting, setGameStarting] = useState(false)
+  const [roster, setRoster] = useState([]); //[{name, isBot, botID, isHost}]
+  const [gameStarting, setGameStarting] = useState(false);
 
   const [chips, setChips] = useState(startingChips); //new
   const [blind, setBlind] = useState(startingBigBlind); //new
 
-  const settingsDebounceRef = useRef(null)
+  const settingsDebounceRef = useRef(null);
 
-  const startedRef = useRef()
+  const startedRef = useRef();
 
-  const navInputsRef = useRef({roomCode, chips, blind, roster, playerName, isHost})
+  const navInputsRef = useRef({
+    roomCode,
+    chips,
+    blind,
+    roster,
+    playerName,
+    isHost,
+  });
   useEffect(() => {
-    navInputsRef.current = {roomCode, chips, blind, roster, playerName, isHost}
-  }, [roomCode, chips, blind, roster, playerName, isHost])
+    navInputsRef.current = {
+      roomCode,
+      chips,
+      blind,
+      roster,
+      playerName,
+      isHost,
+    };
+  }, [roomCode, chips, blind, roster, playerName, isHost]);
 
   const BOT_NAME_PATTERN = /^bot\s*\d+$/i;
 
   useEffect(() => {
     return () => {
-      endSession()
-      clearTimeout(settingsDebounceRef.current)
-    }
-  }, [endSession])
+      endSession();
+      clearTimeout(settingsDebounceRef.current);
+    };
+  }, [endSession]);
 
   const handleSubmitName = async () => {
     fireHaptics();
@@ -83,108 +98,124 @@ export default function LobbyScreen() {
       return;
     }
 
-    setError(null)
-    setConnecting(true)
+    setError(null);
+    setConnecting(true);
 
     try {
       if (isHost) {
         const newHostSession = await startHosting({
           hostName: trimmed,
           startingChips: parseInt(chips, 10) || 500,
-          bigBlind: parseInt(blind, 10) || 20
-        })
-        setRoomCode(newHostSession.roomCode)
+          bigBlind: parseInt(blind, 10) || 20,
+        });
+        setRoomCode(newHostSession.roomCode);
       } else {
         const clientSession = await startJoining({
           playerName: trimmed,
-          roomCode: joinedRoomCode
-        })
+          roomCode: joinedRoomCode,
+        });
 
-        clientSession.setOnJoinRejected(({reason}) => {
-          setConnecting(false)
-          setNameSubmitted(false)
+        clientSession.setOnJoinRejected(({ reason }) => {
+          setConnecting(false);
+          setNameSubmitted(false);
           const messages = {
             connection_failed: "Couldn't reach room",
             room_full: "Room is full",
             name_taken: "That name is taken",
-            game_already_started: "Game has already started"
-          }
-          setError(messages[reason] || "Couldn't join room")
-        })
+            game_already_started: "Game has already started",
+          };
+          setError(messages[reason] || "Couldn't join room");
+        });
 
         setTimeout(() => {
           if (!clientSession.joined && !clientSession.roomCode) {
-            setConnecting(false)
-            setNameSubmitted(false)
-            setError((prev) => prev ?? "Hit timeout")
+            setConnecting(false);
+            setNameSubmitted(false);
+            setError((prev) => prev ?? "Hit timeout");
           }
         }, 6000);
       }
-      setNameSubmitted(true)
+      setNameSubmitted(true);
     } catch (e) {
-      console.warn("[Lobby] failed to start/join session", e)
-      setError("Something went wrong connecting. Please try again.")
+      console.warn("[Lobby] failed to start/join session", e);
+      setError("Something went wrong connecting. Please try again.");
     } finally {
-      setConnecting(false)
+      setConnecting(false);
     }
   };
 
   useEffect(() => {
-    console.log("[Lobby] roster effect running. session:", !!session, "hostSession:", !!hostSession, "isHost:", isHost)
-    if (!session) return
+    console.log(
+      "[Lobby] roster effect running. session:",
+      !!session,
+      "hostSession:",
+      !!hostSession,
+      "isHost:",
+      isHost
+    );
+    if (!session) return;
     const handleRoster = (payload) => {
-      console.log("[Lobby] handleRoster called with:", payload)
-      setRoster(payload.players ?? [])
-      if (payload.roomCode) setRoomCode(payload.roomCode)
-    }
+      console.log("[Lobby] handleRoster called with:", payload);
+      setRoster(payload.players ?? []);
+      if (payload.roomCode) setRoomCode(payload.roomCode);
+    };
 
     if (isHost && hostSession) {
-      console.log("[Lobby] taking host branch")
-      hostSession.setOnRosterChange(handleRoster)
+      console.log("[Lobby] taking host branch");
+      hostSession.setOnRosterChange(handleRoster);
     } else {
-      console.log("[Lobby] taking adapter/client branch")
-      session.setOnRosterChange?.(handleRoster)
+      console.log("[Lobby] taking adapter/client branch");
+      session.setOnRosterChange?.(handleRoster);
     }
 
     if (!isHost) {
-      session.setOnSettingsChange?.(({startingChips: hostChips, bigBlind: hostBlind}) => {
-        if (hostChips !== undefined) setChips(hostChips)
-        if (hostBlind !== undefined) setBlind(hostBlind)
-      })
+      session.setOnSettingsChange?.(
+        ({ startingChips: hostChips, bigBlind: hostBlind }) => {
+          if (hostChips !== undefined) setChips(hostChips);
+          if (hostBlind !== undefined) setBlind(hostBlind);
+        }
+      );
     }
 
     session.setOnGameStarted?.(() => {
-      if (startedRef.current) return
-      startedRef.current = true
-      navigateToGame()
-    })
+      if (startedRef.current) return;
+      startedRef.current = true;
+      navigateToGame();
+    });
 
-    session.setOnError?.(({code, message}) => {
-      console.warn("[Lobby] session error", code, message)
-      setError(message)
-    })
-  }, [session, hostSession, isHost])
+    session.setOnError?.(({ code, message }) => {
+      console.warn("[Lobby] session error", code, message);
+      setError(message);
+    });
+  }, [session, hostSession, isHost]);
 
   const handleBack = () => {
-    endSession()
+    endSession();
     router.back();
   };
 
   const handleAddBot = () => {
     fireHaptics();
-    session?.requestAddBot()
+    session?.requestAddBot();
   };
 
   const handleRemoveBot = (botID) => {
     fireHaptics();
-    session.requestRemoveBot(botID)
+    session.requestRemoveBot(botID);
   };
 
   const navigateToGame = () => {
-    const { roomCode: code, chips: c, blind: b, roster: r, playerName: name, isHost: host } = navInputsRef.current
-    const parsedChips = parseInt(c, 10) || 500
-    const parsedBlind = parseInt(b, 10) || 20
-    const numBots = r.filter((p) => p.isBot).length
+    const {
+      roomCode: code,
+      chips: c,
+      blind: b,
+      roster: r,
+      playerName: name,
+      isHost: host,
+    } = navInputsRef.current;
+    const parsedChips = parseInt(c, 10) || 500;
+    const parsedBlind = parseInt(b, 10) || 20;
+    const numBots = r.filter((p) => p.isBot).length;
 
     router.push({
       pathname: "/game",
@@ -195,20 +226,20 @@ export default function LobbyScreen() {
         isHost: host ? "true" : "false",
         name,
         startingChips: parsedChips,
-        bigBlind: parsedBlind
-      }
-    })
-  }
+        bigBlind: parsedBlind,
+      },
+    });
+  };
 
   const handleStartGame = () => {
     fireHaptics();
-    if (!hostSession) return
+    if (!hostSession) return;
     const parsedChips = parseInt(chips, 10) || 500;
     const parsedBlind = parseInt(blind, 10) || 20;
 
-    const otherHumans = roster.filter((p) => !p.isBot && !p.isHost)
+    const otherHumans = roster.filter((p) => !p.isBot && !p.isHost);
     if (otherHumans.length === 0) {
-      const numBots = roster.filter((p) => p.isBot).length
+      const numBots = roster.filter((p) => p.isBot).length;
       router.push({
         pathname: "/game",
         params: {
@@ -222,8 +253,11 @@ export default function LobbyScreen() {
       return;
     }
 
-    setGameStarting(true)
-    hostSession.startGame({startingChips: parsedChips, bigBlind: parsedBlind})
+    setGameStarting(true);
+    hostSession.startGame({
+      startingChips: parsedChips,
+      bigBlind: parsedBlind,
+    });
   };
 
   // const roster = [
@@ -236,7 +270,7 @@ export default function LobbyScreen() {
     return (
       <View style={styles.playerRow}>
         <Text style={styles.playerName}>
-          {item.name} 
+          {item.name}
           {item.isBot ? " 🤖" : ""}
         </Text>
         {item.isHost && (
@@ -247,16 +281,19 @@ export default function LobbyScreen() {
               placeholder="---"
               value={String(chips)}
               onChangeText={(text) => {
-                setChips(text)
-                if (!isHost) return
-                clearTimeout(settingsDebounceRef.current)
+                setChips(text);
+                if (!isHost) return;
+                clearTimeout(settingsDebounceRef.current);
                 settingsDebounceRef.current = setTimeout(() => {
-                  hostSession?.updateSettings({startingChips: parseInt(text, 10) || 0, bigBlind: parseInt(blind, 10) || 0})
+                  hostSession?.updateSettings({
+                    startingChips: parseInt(text, 10) || 0,
+                    bigBlind: parseInt(blind, 10) || 0,
+                  });
                 }, 400);
               }}
               keyboardType="number-pad"
               autoCorrect={false}
-              editable = {isHost}
+              editable={isHost}
             />
 
             <Art art={altChipArt} box={"0 0 64 64"} color={"#1a4a8a"} />
@@ -268,11 +305,14 @@ export default function LobbyScreen() {
               placeholder="--"
               value={String(blind)}
               onChangeText={(text) => {
-                setBlind(text)
-                if (!isHost) return
-                clearTimeout(settingsDebounceRef.current)
+                setBlind(text);
+                if (!isHost) return;
+                clearTimeout(settingsDebounceRef.current);
                 settingsDebounceRef.current = setTimeout(() => {
-                  hostSession?.updateSettings({startingChips: parseInt(chips, 10) || 0, bigBlind: parseInt(text, 10) || 0})
+                  hostSession?.updateSettings({
+                    startingChips: parseInt(chips, 10) || 0,
+                    bigBlind: parseInt(text, 10) || 0,
+                  });
                 }, 400);
               }}
               keyboardType="number-pad"
@@ -311,7 +351,7 @@ export default function LobbyScreen() {
         </TouchableOpacity>
         <View style={styles.content}>
           <Text style={styles.title}>Enter Name</Text>
-          
+
           <TextInput
             style={styles.nameInput}
             value={playerName}
@@ -334,7 +374,9 @@ export default function LobbyScreen() {
             onPress={handleSubmitName}
             disabled={playerName.trim().length === 0 || connecting}
           >
-            <Text style={styles.primaryButtonText}>{connecting ? "CONNECTING..." : "CONTINUE"}</Text>
+            <Text style={styles.primaryButtonText}>
+              {connecting ? "CONNECTING..." : "CONTINUE"}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -367,11 +409,16 @@ export default function LobbyScreen() {
         </View>
         {isHost ? (
           <TouchableOpacity
-            style={[styles.primaryButton, (roster.length < 2 || gameStarting) && styles.dimmed]}
+            style={[
+              styles.primaryButton,
+              (roster.length < 2 || gameStarting) && styles.dimmed,
+            ]}
             onPress={handleStartGame}
-            disabled = {roster.length < 2 || gameStarting}
+            disabled={roster.length < 2 || gameStarting}
           >
-            <Text style={styles.primaryButtonText}>{gameStarting ? "STARTING..." : "START GAME"}</Text>
+            <Text style={styles.primaryButtonText}>
+              {gameStarting ? "STARTING..." : "START GAME"}
+            </Text>
           </TouchableOpacity>
         ) : (
           <Text style={styles.waitingText}>Waiting for host to start...</Text>

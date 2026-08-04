@@ -12,7 +12,7 @@ import {
   soundOffArt,
   profileArt,
 } from "@/assets/SVG-icons";
-import {useHaptics} from "@/hooks/useHaptics"
+import { useHaptics } from "@/hooks/useHaptics";
 // import { RTCPeerConnection } from "react-native-webrtc";
 
 function Art({ art, box, size = 35, color = "#ffffff", isStroke = false }) {
@@ -33,7 +33,7 @@ function Art({ art, box, size = 35, color = "#ffffff", isStroke = false }) {
 
 export default function HomeScreen() {
   // console.log("RTCPeerConnection type:", typeof RTCPeerConnection);
-  const {fireHaptics} = useHaptics()
+  const { fireHaptics } = useHaptics();
   //this is the title screen
   const router = useRouter(); //use to navigate to other screens
   const { muted, toggleMute } = useApp();
@@ -50,18 +50,18 @@ export default function HomeScreen() {
 
   const handleGuide = () => {
     fireHaptics();
-    router.push("/guide")
-  }
+    router.push("/guide");
+  };
 
   const handleSettings = () => {
     fireHaptics();
-    router.push("/settings")
-  }
+    router.push("/settings");
+  };
 
   const handleProfile = () => {
-    fireHaptics()
-    router.push("/profile")
-  }
+    fireHaptics();
+    router.push("/profile");
+  };
 
   //TEMP DEV ONLY
   const handleUITest = () => {
@@ -70,9 +70,9 @@ export default function HomeScreen() {
   };
 
   const handleNetworkTest = () => {
-    fireHaptics()
-    router.push("/network_test")
-  }
+    fireHaptics();
+    router.push("/network_test");
+  };
 
   return (
     <View style={styles.container}>
@@ -109,7 +109,7 @@ export default function HomeScreen() {
               { backgroundColor: Colors.background.settings },
               { borderColor: "#89b3f3" },
             ]}
-            onPress = {handleSettings}
+            onPress={handleSettings}
           >
             <Art art={cogArt} box={"0 0 64 64"} size={40} />
           </TouchableOpacity>
@@ -120,7 +120,10 @@ export default function HomeScreen() {
               { backgroundColor: Colors.background.sound },
               { borderColor: "#e66a11" },
             ]}
-            onPress={() => {fireHaptics(); toggleMute()}}
+            onPress={() => {
+              fireHaptics();
+              toggleMute();
+            }}
           >
             <Art
               art={muted ? soundOffArt : soundOnArt}
@@ -136,7 +139,7 @@ export default function HomeScreen() {
               { backgroundColor: Colors.background.profile },
               { borderColor: "#107b10" },
             ]}
-            onPress = {handleProfile}
+            onPress={handleProfile}
           >
             <Art art={profileArt} box={"0 0 24 24"} size={40} />
           </TouchableOpacity>
@@ -147,7 +150,7 @@ export default function HomeScreen() {
               { backgroundColor: Colors.background.guide },
               { borderColor: "#ef2f2f" },
             ]}
-            onPress = {handleGuide}
+            onPress={handleGuide}
           >
             <Art art={bookArt} box={"0 0 24 24"} size={40} />
           </TouchableOpacity>

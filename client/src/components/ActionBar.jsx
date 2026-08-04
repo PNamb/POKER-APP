@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Slider from "@react-native-community/slider";
 import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
-import * as Haptics from "expo-haptics"
+import * as Haptics from "expo-haptics";
 import { useApp } from "@/contexts/AppContext";
 import { useHaptics } from "@/hooks/useHaptics";
 
@@ -16,8 +16,8 @@ export default function ActionBar({
   isTurn,
   style,
 }) {
-  const {fireHaptics, fireSelectionHaptics} = useHaptics()
-  const lastTickRef = useRef()
+  const { fireHaptics, fireSelectionHaptics } = useHaptics();
+  const lastTickRef = useRef();
 
   const [raiseAmount, setRaiseAmount] = useState(
     legalActions?.minRaiseAmount ?? 0
@@ -27,7 +27,7 @@ export default function ActionBar({
 
   useEffect(() => {
     setRaiseAmount(minRaiseAmount ?? 0);
-    lastTickRef.current = null
+    lastTickRef.current = null;
   }, [minRaiseAmount, isTurn]);
 
   const isFoldDisabled = !isTurn || !canFold;
@@ -43,7 +43,10 @@ export default function ActionBar({
           styles.foldButton,
           isFoldDisabled && styles.dimmed,
         ]}
-        onPress={() => {fireHaptics(); onFold()}}
+        onPress={() => {
+          fireHaptics();
+          onFold();
+        }}
         disabled={isFoldDisabled}
       >
         <Text style={styles.buttonText}>FOLD</Text>
@@ -59,7 +62,10 @@ export default function ActionBar({
           styles.checkButton,
           isCheckDisabled && styles.dimmed,
         ]}
-        onPress={() => {fireHaptics(); onCheck()}}
+        onPress={() => {
+          fireHaptics();
+          onCheck();
+        }}
         disabled={isCheckDisabled}
       >
         <Text style={styles.buttonText}>CHECK</Text>
@@ -75,7 +81,10 @@ export default function ActionBar({
           styles.callButton,
           isCallDisabled && styles.dimmed,
         ]}
-        onPress={() => {fireHaptics(); onCall()}}
+        onPress={() => {
+          fireHaptics();
+          onCall();
+        }}
         disabled={isCallDisabled}
       >
         <Text style={styles.buttonText}>CALL</Text>
@@ -85,19 +94,19 @@ export default function ActionBar({
 
   const renderRaiseSlider = () => {
     //raise slider
-    const sliderMax = Math.max(maxRaise, 0)
-    const sliderMin = Math.min(minRaiseAmount, sliderMax)
-    const isDisabled = isRaiseDisabled || sliderMax <= 0
-    const tickSize = Math.max(Math.round((sliderMax - sliderMin) / 20), 1)
+    const sliderMax = Math.max(maxRaise, 0);
+    const sliderMin = Math.min(minRaiseAmount, sliderMax);
+    const isDisabled = isRaiseDisabled || sliderMax <= 0;
+    const tickSize = Math.max(Math.round((sliderMax - sliderMin) / 20), 1);
 
     const handleChange = (v) => {
-      setRaiseAmount(v)
-      const tick = Math.floor(v, tickSize)
+      setRaiseAmount(v);
+      const tick = Math.floor(v, tickSize);
       if (tick !== lastTickRef.current) {
-        fireSelectionHaptics()
-        lastTickRef.current = tick
+        fireSelectionHaptics();
+        lastTickRef.current = tick;
       }
-    }
+    };
 
     return (
       <View>
@@ -113,7 +122,7 @@ export default function ActionBar({
           minimumTrackTintColor={Colors.action.raise}
           maximumTrackTintColor="#444"
           thumbTintColor={Colors.action.raise}
-          disabled = {isDisabled}
+          disabled={isDisabled}
         />
       </View>
     );
@@ -127,7 +136,10 @@ export default function ActionBar({
           styles.raiseButton,
           isRaiseDisabled && styles.dimmed,
         ]}
-        onPress={() => {fireHaptics(); onRaise(raiseAmount)}}
+        onPress={() => {
+          fireHaptics();
+          onRaise(raiseAmount);
+        }}
         disabled={isRaiseDisabled}
       >
         <Text style={styles.buttonText}>RAISE</Text>

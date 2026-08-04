@@ -22,10 +22,10 @@ function LayoutInner() {
         <Stack.Screen name="join" />
         <Stack.Screen name="lobby" />
         <Stack.Screen name="temp" />
-        <Stack.Screen name = "guide" />
-        <Stack.Screen name = "settings" />
-        <Stack.Screen name = "profile" />
-        <Stack.Screen name = "network_test" />
+        <Stack.Screen name="guide" />
+        <Stack.Screen name="settings" />
+        <Stack.Screen name="profile" />
+        <Stack.Screen name="network_test" />
       </Stack>
     </>
   );
@@ -38,6 +38,5 @@ export default function RootLayout() {
         <LayoutInner />
       </AppProvider>
     </NetworkSessionProvider>
-    
   );
 }

@@ -12,8 +12,8 @@ const SOUNDS = {
 };
 
 export function useSoundEffects(state) {
-  const { sfxVolume } = useApp()
-  
+  const { sfxVolume } = useApp();
+
   const players = {
     deal: useAudioPlayer(SOUNDS.deal),
     chip: useAudioPlayer(SOUNDS.chip),
@@ -25,19 +25,26 @@ export function useSoundEffects(state) {
 
   useEffect(() => {
     Object.values(players).forEach((p) => {
-      p.volume = sfxVolume
-    })
-  }, [sfxVolume, players.deal, players.chip, players.fold, players.check, players.win, players.turn])
+      p.volume = sfxVolume;
+    });
+  }, [
+    sfxVolume,
+    players.deal,
+    players.chip,
+    players.fold,
+    players.check,
+    players.win,
+    players.turn,
+  ]);
 
   const play = useCallback(
     (key) => {
       //audio driver
       const p = players[key];
       if (!p) return;
-      p.volume = sfxVolume
+      p.volume = sfxVolume;
       p.seekTo(0);
       p.play();
-      
     },
     [
       sfxVolume,

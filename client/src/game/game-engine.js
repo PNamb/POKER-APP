@@ -24,12 +24,14 @@ function dealStreet(state, phase) {
 
 function resolveWalk(state) {
   //handles if all but one has folded; returns a state
-  const remaining = state.players.filter((p) => !p.folded && p.chips + p.bet > 0);
+  const remaining = state.players.filter(
+    (p) => !p.folded && p.chips + p.bet > 0
+  );
   if (remaining.length !== 1) {
-    throw new Error(`resolveWalk called with ${remaining.length} players`)
+    throw new Error(`resolveWalk called with ${remaining.length} players`);
   }
 
-  const winner = remaining[0]
+  const winner = remaining[0];
   const winnerIndex = state.players.indexOf(winner);
 
   const players = state.players.map((p, i) =>
@@ -253,7 +255,9 @@ export function createGame(playerNames, options = {}) {
 
 export function startHand(state) {
   //shuffle the deck, reset player bets and hole cards, deal hole cards, and post the blinds; returns a state
-  const activePlayers = state.players.filter((p) => p.chips > 0 && p.connected !== false);
+  const activePlayers = state.players.filter(
+    (p) => p.chips > 0 && p.connected !== false
+  );
   if (activePlayers.length < 2) {
     throw new Error(
       "Game Over: Not enough players with chips to start a hand."
@@ -332,7 +336,7 @@ export function startHand(state) {
     return runOut(state);
   }
 
-  return newState
+  return newState;
 }
 
 export function advancePhase(state) {
@@ -370,7 +374,8 @@ export function advancePhase(state) {
           group.some((entry) => pot.eligiblePlayers.includes(entry.playerIndex))
         );
 
-        if (!eligible) throw new Error("problem with eligible players for sidepots")
+        if (!eligible)
+          throw new Error("problem with eligible players for sidepots");
 
         const potWinners = eligible.filter((entry) =>
           pot.eligiblePlayers.includes(entry.playerIndex)
@@ -574,9 +579,14 @@ export function getLegalActions(state, playerIndex) {
   //returns the actions possible by the given player; {bool bool, bool, bool, number, number}
   const player = state.players[playerIndex];
 
-  const canCheck = state.currentBet === player.bet && state.phase !== "showdown";
-  const canCall = state.currentBet !== player.bet && player.chips > 0 && state.phase !== "showdown";
-  const canRaise = player.chips > state.currentBet - player.bet && state.phase !== "showdown";
+  const canCheck =
+    state.currentBet === player.bet && state.phase !== "showdown";
+  const canCall =
+    state.currentBet !== player.bet &&
+    player.chips > 0 &&
+    state.phase !== "showdown";
+  const canRaise =
+    player.chips > state.currentBet - player.bet && state.phase !== "showdown";
   const canFold = !player.folded && !player.allIn && state.phase !== "showdown";
 
   return {

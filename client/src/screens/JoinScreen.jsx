@@ -8,14 +8,14 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Colors, Spacing, Typography, Radius } from "@/constants/theme";
-import {useHaptics} from "@/hooks/useHaptics"
+import { useHaptics } from "@/hooks/useHaptics";
 
 const CODE_LENGTH = 6;
 
 export default function JoinScreen() {
   //this is the code-entering screen
   const router = useRouter();
-  const {fireHaptics} = useHaptics()
+  const { fireHaptics } = useHaptics();
 
   const [code, setCode] = useState("");
   const [error, setError] = useState(null);
@@ -45,11 +45,11 @@ export default function JoinScreen() {
       pathname: "/lobby",
       params: {
         isHost: "false",
-        roomCode: code
-      }
-    })
+        roomCode: code,
+      },
+    });
   };
-  const canSubmit = code.length === CODE_LENGTH
+  const canSubmit = code.length === CODE_LENGTH;
 
   return (
     //render the join button and enter-code input
@@ -59,7 +59,7 @@ export default function JoinScreen() {
       </TouchableOpacity>
 
       <View style={styles.content}>
-        <Text style={styles.title}>Enter Code</Text>        
+        <Text style={styles.title}>Enter Code</Text>
 
         <TextInput
           style={styles.input}
@@ -79,9 +79,7 @@ export default function JoinScreen() {
           onPress={handleJoin}
           disabled={!canSubmit}
         >
-          <Text style={styles.joinButtonText}>
-            JOIN
-          </Text>
+          <Text style={styles.joinButtonText}>JOIN</Text>
         </TouchableOpacity>
       </View>
     </View>

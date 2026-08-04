@@ -54,12 +54,14 @@
       "expo-audio",
       "expo-web-browser",
       "expo-asset",
-[      "expo-build-properties",
-      {
-        "android": {
-          "kotlinVersion": "2.1.20"
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "2.1.20"
+          }
         }
-      }]
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

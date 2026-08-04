@@ -1,6 +1,6 @@
 import React from "react";
-import NetworkTestScreen from "@/screens/NetworkTestScreen"
+import NetworkTestScreen from "@/screens/NetworkTestScreen";
 
 export default function NetworkTest() {
-    return <NetworkTestScreen />;
+  return <NetworkTestScreen />;
 }

@@ -1,93 +1,90 @@
 import { MessageType, makeMessage } from "./protocol";
 
-const HOST_CONNECTION_ID = "host"
+const HOST_CONNECTION_ID = "host";
 
 export class HostSessionAdapter {
-    constructor(hostSession) {
-        this.hostSession = hostSession
+  constructor(hostSession) {
+    this.hostSession = hostSession;
 
-        this.joined = true
+    this.joined = true;
 
-        this._onStateChange = null
-        this._onRosterChange = null
-        
-        this.hostSession.setOnStateChange((state) => {
-            this._onStateChange?.(state)
-        })
+    this._onStateChange = null;
+    this._onRosterChange = null;
 
-        this.hostSession.setOnRosterChange((payload) => {
-            this._onRosterChange?.(payload)
-        })
+    this.hostSession.setOnStateChange((state) => {
+      this._onStateChange?.(state);
+    });
+
+    this.hostSession.setOnRosterChange((payload) => {
+      this._onRosterChange?.(payload);
+    });
+  }
+
+  join() {}
+
+  sendAction(action) {
+    this.hostSession.handleMessage(
+      HOST_CONNECTION_ID,
+      makeMessage(MessageType.ACTION_REQUEST, { action })
+    );
+  }
+
+  requestNextHand() {
+    this.hostSession.handleMessage(
+      HOST_CONNECTION_ID,
+      makeMessage(MessageType.NEXT_HAND_REQUEST, {})
+    );
+  }
+
+  requestAddBot() {
+    this.hostSession.handleMessage(
+      HOST_CONNECTION_ID,
+      makeMessage(MessageType.ADD_BOT_REQUEST, {})
+    );
+  }
+
+  requestRemoveBot(botID) {
+    this.hostSession.handleMessage(
+      HOST_CONNECTION_ID,
+      makeMessage(MessageType.REMOVE_BOT_REQUEST, { botID: botID })
+    );
+  }
+
+  setOnSettingsChange(fn) {
+    this.hostSession.setOnSettingsChange(fn);
+  }
+
+  updateSettings(settings) {
+    this.hostSession.updateSettings(settings);
+  }
+
+  leave() {
+    this.hostSession.handleMessage(
+      HOST_CONNECTION_ID,
+      makeMessage(MessageType.LEAVE, {})
+    );
+  }
+
+  setOnStateChange(fn) {
+    this._onStateChange = fn;
+    if (this.hostSession.state) {
+      fn(this.hostSession.state);
     }
+  }
 
-    join() {
-        
-    }
+  setOnRosterChange(fn) {
+    this._onRosterChange = fn;
+  }
 
-    sendAction(action) {
-        this.hostSession.handleMessage(
-            HOST_CONNECTION_ID,
-            makeMessage(MessageType.ACTION_REQUEST, {action})
-        )
-    }
+  setOnGameStarted(fn) {
+    this.hostSession.setOnGameStarted(fn);
+  }
 
-    requestNextHand() {
-        this.hostSession.handleMessage(
-            HOST_CONNECTION_ID,
-            makeMessage(MessageType.NEXT_HAND_REQUEST, {})
-        )
-    }
+  endGame() {
+    this.hostSession.endGame();
+  }
 
-    requestAddBot() {
-        this.hostSession.handleMessage(
-            HOST_CONNECTION_ID,
-            makeMessage(MessageType.ADD_BOT_REQUEST, {})
-        )
-    }
-
-    requestRemoveBot(botID) {
-        this.hostSession.handleMessage(
-            HOST_CONNECTION_ID,
-            makeMessage(MessageType.REMOVE_BOT_REQUEST, {botID: botID})
-        )
-    }
-
-    setOnSettingsChange(fn) {
-        this.hostSession.setOnSettingsChange(fn)
-    }
-
-    updateSettings(settings) {
-        this.hostSession.updateSettings(settings)
-    }
-
-    leave() {
-        this.hostSession.handleMessage(
-            HOST_CONNECTION_ID,
-            makeMessage(MessageType.LEAVE, {})
-        )
-    }
-
-    setOnStateChange(fn) {
-        this._onStateChange = fn
-        if (this.hostSession.state) {
-            fn(this.hostSession.state)
-        }
-    }
-
-    setOnRosterChange(fn) {
-        this._onRosterChange = fn
-    }
-
-    setOnGameStarted(fn) {
-        this.hostSession.setOnGameStarted(fn)
-    }
-
-    endGame() {
-        this.hostSession.endGame()
-    }
-
-    setOnError(fn) {
-        this.hostSession.setOnError(fn)
-    }
-
+  setOnError(fn) {
+    this.hostSession.setOnError(fn);
+  }
 }

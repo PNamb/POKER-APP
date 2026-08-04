@@ -8,7 +8,7 @@ export const Colors = {
     settings: "#89d7f3",
     guide: "#de5050",
     profile: "#0ce00cb7",
-    sound: "#e67f11"
+    sound: "#e67f11",
   },
   action: {
     fold: "#2a1a1a",

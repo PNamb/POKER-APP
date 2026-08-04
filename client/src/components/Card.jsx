@@ -13,8 +13,8 @@ const TWO_COLOR = {
   clubs: "#1a1a1a",
   spades: "#1a1a1a",
   hearts: "#c0392b",
-  diamonds: "#c0392b"
-}
+  diamonds: "#c0392b",
+};
 
 const FOUR_COLOR = {
   clubs: "#2cbc5e",
@@ -121,10 +121,12 @@ function FaceIcon({ face, size, color }) {
 }
 
 export default function Card({ card, rank, suit, faceUp = true, width = 80 }) {
-  const {fourColorDeck} = useApp()
+  const { fourColorDeck } = useApp();
 
-  const isHidden = card === null || card === undefined && rank === undefined && suit === undefined
-  const effectiveFaceUp = faceUp && !isHidden
+  const isHidden =
+    card === null ||
+    (card === undefined && rank === undefined && suit === undefined);
+  const effectiveFaceUp = faceUp && !isHidden;
 
   const rankStr = card !== undefined ? cardRank(card) : String(rank);
   const suitStr = card !== undefined ? cardSuit(card) : suit;
@@ -135,7 +137,7 @@ export default function Card({ card, rank, suit, faceUp = true, width = 80 }) {
   const cornerFontSize = width * 0.185;
   const cornerLineHeight = width * 0.21;
 
-  const suitColor = (fourColorDeck ? FOUR_COLOR : TWO_COLOR)[suitStr]
+  const suitColor = (fourColorDeck ? FOUR_COLOR : TWO_COLOR)[suitStr];
   const isFace = FACE_RANKS.includes(rankStr);
   const isAce = rankStr === "A";
 
@@ -224,7 +226,12 @@ export default function Card({ card, rank, suit, faceUp = true, width = 80 }) {
 
   return (
     //rendering everything
-    <View style={[styles.card, { width, height, padding: padding , borderColor: suitColor}]}>
+    <View
+      style={[
+        styles.card,
+        { width, height, padding: padding, borderColor: suitColor },
+      ]}
+    >
       {renderCorner(false)}
 
       <View style={styles.centerArea}>{renderCenter()}</View>

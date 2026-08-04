@@ -21,17 +21,17 @@ export function useGameState({
   bigBlind = 20,
   session,
   hostSession,
-  isHost = "false"
+  isHost = "false",
 }) {
-  const { botDifficulty, recordHandResult } = useApp()
+  const { botDifficulty, recordHandResult } = useApp();
   const [state, setState] = useState(null);
   const [localPlayerIndex, setLocalPlayerIndex] = useState(0);
   const botTimeoutRef = useRef(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const transitionRef = useRef(null);
-  const recordedHandRef = useRef(null)
+  const recordedHandRef = useRef(null);
 
-  const lastReceivedStateRef = useRef(null)
+  const lastReceivedStateRef = useRef(null);
 
   const commitState = useCallback((prevState, nextState) => {
     if (botTimeoutRef.current) {
@@ -77,11 +77,14 @@ export function useGameState({
     }, REVEAL_DELAY + ACTION_SETTLE_DELAY);
   }, []);
 
-  const commitReceivedState = useCallback((state) => {
-    const prev = lastReceivedStateRef.current
-    lastReceivedStateRef.current = state
-    commitState(prev, state)
-  }, [commitState])
+  const commitReceivedState = useCallback(
+    (state) => {
+      const prev = lastReceivedStateRef.current;
+      lastReceivedStateRef.current = state;
+      commitState(prev, state);
+    },
+    [commitState]
+  );
 
   useEffect(() => {
     if (mode === "bot") {
@@ -95,21 +98,21 @@ export function useGameState({
     }
 
     if (mode === "online") {
-      if (!session) return
+      if (!session) return;
 
       const handleStateUpdate = (state) => {
-        commitReceivedState(state)
-      }
+        commitReceivedState(state);
+      };
 
-      const handleGameStarted = ({playerIndex}) => {
-        setLocalPlayerIndex(playerIndex)
-      }
+      const handleGameStarted = ({ playerIndex }) => {
+        setLocalPlayerIndex(playerIndex);
+      };
 
-      session.setOnStateChange?.(handleStateUpdate)
-      session.setOnGameStarted?.(handleGameStarted)
+      session.setOnStateChange?.(handleStateUpdate);
+      session.setOnGameStarted?.(handleGameStarted);
 
       if (!session.joined && typeof session.joined === "function") {
-        session.join()
+        session.join();
       }
     }
 
@@ -128,7 +131,7 @@ export function useGameState({
       }
 
       if (mode === "online") {
-        session?.sendAction(action)
+        session?.sendAction(action);
       }
     },
     [mode, state, localPlayerIndex, commitState, session]
@@ -167,40 +170,41 @@ export function useGameState({
     return () => clearTimeout(botTimeoutRef.current);
   }, [mode, state, isTransitioning, commitState, botDifficulty]);
 
-  const onlineBotTimeoutRef = useRef(null)
+  const onlineBotTimeoutRef = useRef(null);
   useEffect(() => {
-    if (mode !== "online" || !isHost || !hostSession) return
+    if (mode !== "online" || !isHost || !hostSession) return;
     if (!state || isTransitioning) return;
     if (state.phase === "waiting" || state.phase === "showdown") return;
 
-    const activePlayer = state.players[state.activeIndex]
-    if (!activePlayer?.isBot) return
+    const activePlayer = state.players[state.activeIndex];
+    if (!activePlayer?.isBot) return;
 
-    const actingIndex = state.activeIndex
+    const actingIndex = state.activeIndex;
 
     onlineBotTimeoutRef.current = setTimeout(() => {
-      const current = hostSession.state
+      const current = hostSession.state;
 
-      if (!current || current.activeIndex !== actingIndex) return
+      if (!current || current.activeIndex !== actingIndex) return;
 
-      const action = botAction(current, actingIndex, botDifficulty)
-      hostSession.handleBotAction(actingIndex, action)
+      const action = botAction(current, actingIndex, botDifficulty);
+      hostSession.handleBotAction(actingIndex, action);
     }, BOT_ACTION_DELAY);
 
-    return () => clearTimeout(onlineBotTimeoutRef.current)
-  }, [mode, isHost, hostSession, state, isTransitioning, botDifficulty])
-
+    return () => clearTimeout(onlineBotTimeoutRef.current);
+  }, [mode, isHost, hostSession, state, isTransitioning, botDifficulty]);
 
   useEffect(() => {
-    if (!state || state.phase !== "showdown" || !state.winners) return
-    if (recordedHandRef.current === state.handNumber) return
+    if (!state || state.phase !== "showdown" || !state.winners) return;
+    if (recordedHandRef.current === state.handNumber) return;
 
-    recordedHandRef.current = state.handNumber
+    recordedHandRef.current = state.handNumber;
 
-    const localWinnings = state.winners.filter((w) => w.playerIndex === localPlayerIndex).reduce((sum, w) => sum + w.amount, 0)
+    const localWinnings = state.winners
+      .filter((w) => w.playerIndex === localPlayerIndex)
+      .reduce((sum, w) => sum + w.amount, 0);
 
-    recordHandResult(localWinnings > 0, localWinnings)
-  }, [state, localPlayerIndex, recordHandResult])
+    recordHandResult(localWinnings > 0, localWinnings);
+  }, [state, localPlayerIndex, recordHandResult]);
 
   const legalActions = state ? getLegalActions(state, localPlayerIndex) : null;
   const isLocalPlayerTurn =
@@ -213,7 +217,7 @@ export function useGameState({
       commitState(state, next);
     }
     if (mode === "online") {
-      session?.requestNextHand()
+      session?.requestNextHand();
     }
   }, [mode, state, commitState, session]);
 

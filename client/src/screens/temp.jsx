@@ -11,22 +11,22 @@ import Hand from "../components/Hand";
 import ActionBar from "../components/ActionBar";
 import { Colors, Radius, Spacing, Typography } from "../constants/theme";
 import { nextActiveIndex } from "@/game/game-engine";
- 
+
 export default function GameScreen() {
   //this is the game screen
   const router = useRouter();
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
- 
+
   const mode = params.mode ?? "bot";
   const numBots = params.numBots ?? 2;
   const roomCode = params.roomCode;
   const isHost = params.isHost === "true";
   const name = params.name ?? "You";
- 
+
   const startingChips = Number(params.startingChips) || 500;
   const bigBlind = Number(params.bigBlind) || 20;
- 
+
   const {
     state,
     localPlayerIndex,
@@ -46,11 +46,11 @@ export default function GameScreen() {
     bigBlind,
   });
   useSoundEffects(state);
- 
+
   const handleLeave = () => {
     router.push("/");
   };
- 
+
   const handleEndGame = () => {
     if (mode === "bot") {
       router.push("/");
@@ -61,7 +61,7 @@ export default function GameScreen() {
       router.push({ pathname: "/lobby", params: { isHost: "true", roomCode } });
     }
   };
- 
+
   if (!state) {
     //loading state
     return (
@@ -72,26 +72,26 @@ export default function GameScreen() {
       </View>
     );
   }
- 
+
   const localPlayer = state.players[localPlayerIndex];
   const opponents = state.players.filter((_, i) => i !== localPlayerIndex);
   const bettingPhase = state.phase !== "waiting" && state.phase !== "showdown";
   const playersWithChips = state.players.filter((p) => p.chips > 0).length;
   const isGameOver = state.phase === "showdown" && playersWithChips < 2;
- 
+
   const firstToActIndex = bettingPhase
     ? state.phase === "preflop"
       ? nextActiveIndex(state.players, state.bigBlindIndex)
       : nextActiveIndex(state.players, state.dealerIndex)
     : null;
- 
+
   const seatStateFor = (player) => {
     //seat state for a given player
     if (player.folded) return "folded";
     if (player.allIn) return "all_in";
     return "active";
   };
- 
+
   const aggregatedWinners = state.winners?.reduce((acc, w) => {
     const existing = acc.find((a) => a.playerIndex === w.playerIndex);
     if (existing) {
@@ -101,13 +101,13 @@ export default function GameScreen() {
     }
     return acc;
   }, []);
- 
+
   const renderOpponent = (player) => {
     const playerIndex = state.players.indexOf(player);
     const isTurn = state.activeIndex === playerIndex;
     const isShowdown = state.phase === "showdown";
     const revealCards = isShowdown && !player.folded;
- 
+
     return (
       <PlayerSeat
         key={player.id}
@@ -123,7 +123,7 @@ export default function GameScreen() {
       />
     );
   };
- 
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -133,7 +133,7 @@ export default function GameScreen() {
       >
         {opponents.map(renderOpponent)}
       </ScrollView>
- 
+
       <View style={styles.tableCenter}>
         <PotDisplay mainPot={state.pot} sidePots={state.sidePots} />
         <CommunityCards
@@ -142,7 +142,7 @@ export default function GameScreen() {
           style={styles.communityCards}
         />
       </View>
- 
+
       {state.phase === "showdown" && (
         <View style={styles.showdownBanner}>
           <Text style={styles.showdownText}>
@@ -197,7 +197,7 @@ export default function GameScreen() {
     </View>
   );
 }
- 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

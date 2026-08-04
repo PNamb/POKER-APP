@@ -1,5 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, BackHandler } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Dimensions,
+  TouchableOpacity,
+  BackHandler,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useGameState } from "../hooks/useGameState";
@@ -14,16 +22,16 @@ import { nextActiveIndex } from "@/game/game-engine";
 import { useHaptics } from "@/hooks/useHaptics";
 import { useNetworkSession } from "@/contexts/NetworkSessionContext";
 
-const {height: SCREEN_HEIGHT} = Dimensions.get("window")
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 export default function GameScreen() {
   //this is the game screen
   const router = useRouter();
-  const {fireHaptics} = useHaptics()
+  const { fireHaptics } = useHaptics();
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
 
-  const [isAdvancing, setIsAdvancing] = useState(false)
+  const [isAdvancing, setIsAdvancing] = useState(false);
 
   const mode = params.mode ?? "bot";
   const numBots = params.numBots ?? 2;
@@ -34,8 +42,8 @@ export default function GameScreen() {
   const startingChips = Number(params.startingChips) || 500;
   const bigBlind = Number(params.bigBlind) || 20;
 
-  const {endSession, session, hostSession} = useNetworkSession()
-  
+  const { endSession, session, hostSession } = useNetworkSession();
+
   const {
     state,
     localPlayerIndex,
@@ -54,28 +62,27 @@ export default function GameScreen() {
     startingChips,
     bigBlind,
     session: mode === "online" ? session : undefined,
-    hostSession: mode === "online" && isHost ? hostSession : undefined
+    hostSession: mode === "online" && isHost ? hostSession : undefined,
   });
   useSoundEffects(state);
 
   useEffect(() => {
-    setIsAdvancing(false)
-  }, [state?.handNumber])
+    setIsAdvancing(false);
+  }, [state?.handNumber]);
 
   useEffect(() => {
     return () => {
-      endSession()
-    }
-  }, [endSession])
+      endSession();
+    };
+  }, [endSession]);
 
   useEffect(() => {
-    if (mode !== "online" || isHost || !session) return
+    if (mode !== "online" || isHost || !session) return;
     session.setOnGameEnded?.(() => {
-      endSession()
-      router.replace("/")
-    })
-    
-  }, [mode, isHost, endSession, router])
+      endSession();
+      router.replace("/");
+    });
+  }, [mode, isHost, endSession, router]);
 
   // const gameOverBroadcastRef = useRef(false)
   // useEffect(() => {
@@ -95,39 +102,39 @@ export default function GameScreen() {
   // }, [mode, isHost, hostSession, state])
 
   const handleLeave = useCallback(() => {
-    endSession()
+    endSession();
     router.replace("/");
   }, [endSession, router]);
 
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-      handleLeave()
-      return true
-    })
-    return () => sub.remove()
-  }, [handleLeave])
+      handleLeave();
+      return true;
+    });
+    return () => sub.remove();
+  }, [handleLeave]);
 
   const handleNextHand = () => {
-    if (isAdvancing) return
-    setIsAdvancing(true)
-    fireHaptics()
-    startNextHand()
-  }
+    if (isAdvancing) return;
+    setIsAdvancing(true);
+    fireHaptics();
+    startNextHand();
+  };
 
   const handleEndGame = () => {
-    fireHaptics()
+    fireHaptics();
     if (mode === "bot") {
-      endSession()
+      endSession();
       router.replace("/");
       return;
     }
     if (mode === "online") {
       //TODO - broadcast "return to lobby" to all connected clients via socket-client.js
       if (isHost) {
-        hostSession?.endGame()
+        hostSession?.endGame();
       }
-      endSession()
-      router.replace("/")
+      endSession();
+      router.replace("/");
     }
   };
 
@@ -145,7 +152,9 @@ export default function GameScreen() {
   const localPlayer = state.players[localPlayerIndex];
   const opponents = state.players.filter((_, i) => i !== localPlayerIndex);
   const bettingPhase = state.phase !== "waiting" && state.phase !== "showdown";
-  const playersWithChips = state.players.filter((p) => p.chips > 0 && p.connected !== false).length;
+  const playersWithChips = state.players.filter(
+    (p) => p.chips > 0 && p.connected !== false
+  ).length;
   const isGameOver = state.phase === "showdown" && playersWithChips < 2;
 
   const firstToActIndex = bettingPhase
@@ -195,66 +204,79 @@ export default function GameScreen() {
 
   return (
     <View style={styles.container}>
-      <View style = {styles.playArea} pointerEvents = "box-none">
+      <View style={styles.playArea} pointerEvents="box-none">
         <ScrollView
           horizontal
-          style = {StyleSheet.absoluteFill}
+          style={StyleSheet.absoluteFill}
           contentContainerStyle={styles.opponentRow}
           showsHorizontalScrollIndicator={false}
         >
           {opponents.map(renderOpponent)}
         </ScrollView>
 
-        <View style = {styles.opponentRow} pointerEvents = "none">
+        <View style={styles.opponentRow} pointerEvents="none">
           {opponents.length > 0 ? (
-            <View style = {[styles.opponentSpacer, {opacity: 0}]} />
-          ): null}
+            <View style={[styles.opponentSpacer, { opacity: 0 }]} />
+          ) : null}
         </View>
 
-        <View style={styles.tableCenter} pointerEvents = "box-none">
+        <View style={styles.tableCenter} pointerEvents="box-none">
           <PotDisplay mainPot={state.pot} sidePots={state.sidePots} />
           <CommunityCards
             cards={state.communityCards}
             cardWidth={60}
             style={styles.communityCards}
           />
-        
+
           {state.phase === "showdown" && (
-            <View style={styles.showdownBanner} pointerEvents = "box-none">
+            <View style={styles.showdownBanner} pointerEvents="box-none">
               <Text style={styles.showdownText}>
                 {aggregatedWinners
                   ?.map(
-                    (w) => `${state.players[w.playerIndex].name} wins ${w.amount}`
+                    (w) =>
+                      `${state.players[w.playerIndex].name} wins ${w.amount}`
                   )
                   .join(", ")}
               </Text>
               {isGameOver ? (
                 <>
                   <Text style={styles.gameOverText}>
-                    {state.players.find((p) => p.chips > 0 && p.connected !== false)?.name} wins the game
+                    {
+                      state.players.find(
+                        (p) => p.chips > 0 && p.connected !== false
+                      )?.name
+                    }{" "}
+                    wins the game
                   </Text>
                   {(mode === "bot" || isHost) && (
-
-                  <TouchableOpacity style = {[styles.endRoundButton, {backgroundColor: Colors.border.danger}]} onPress={handleEndGame}>
-                    <Text style={styles.endGameButton}>
-                      END GAME
-                    </Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.endRoundButton,
+                        { backgroundColor: Colors.border.danger },
+                      ]}
+                      onPress={handleEndGame}
+                    >
+                      <Text style={styles.endGameButton}>END GAME</Text>
+                    </TouchableOpacity>
                   )}
                 </>
               ) : (
                 (mode === "bot" || isHost) && (
-                  <TouchableOpacity style = {[styles.endRoundButton, {backgroundColor: Colors.action.raise}]} onPress={handleNextHand}>
-                    <Text style={styles.nextHandButton}>
-                      NEXT HAND
-                    </Text>
+                  <TouchableOpacity
+                    style={[
+                      styles.endRoundButton,
+                      { backgroundColor: Colors.action.raise },
+                    ]}
+                    onPress={handleNextHand}
+                  >
+                    <Text style={styles.nextHandButton}>NEXT HAND</Text>
                   </TouchableOpacity>
                 )
               )}
             </View>
           )}
         </View>
-        <View style={styles.localSeat} pointerEvents = "none">
+        <View style={styles.localSeat} pointerEvents="none">
           <Hand cards={localPlayer.holeCards} faceUp={true} cardWidth={70} />
           <PlayerSeat
             player={localPlayer}
@@ -318,7 +340,7 @@ const styles = StyleSheet.create({
   },
   opponentSpacer: {
     width: 110,
-    height: 150
+    height: 150,
   },
   tableCenter: {
     flex: 1,
@@ -332,7 +354,7 @@ const styles = StyleSheet.create({
   endRoundButton: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
-    borderRadius: Radius.card
+    borderRadius: Radius.card,
   },
   showdownBanner: {
     width: "100%",
