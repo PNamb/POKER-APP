@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useRef } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Pressable, Animated } from "react-native";
 import { useRouter } from "expo-router";
 import { Colors, Spacing, Typography, Radius } from "@/constants/theme";
 import Svg, { Path } from "react-native-svg";
@@ -37,6 +37,22 @@ export default function HomeScreen() {
   //this is the title screen
   const router = useRouter(); //use to navigate to other screens
   const { muted, toggleMute } = useApp();
+
+  const scaleValue = useRef(new Animated.Value(1)).current
+
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, {
+      toValue: 0.8,
+      useNativeDriver: true
+    }).start()
+  }
+
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      useNativeDriver: true
+    }).start()
+  }
 
   const handleHost = () => {
     fireHaptics();
@@ -103,6 +119,18 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         <View style={styles.settingsButtonRow}>
+          <Pressable //Alternate Setting button
+            onPressIn = {handlePressIn}
+            onPressOut = {handlePressOut}
+            onPress = {handleSettings}
+          >
+            <Animated.View 
+            style={[ styles.settingsButton, { backgroundColor: Colors.background.settings }, { borderColor: "#89b3f3" }, { transform: [{scale: scaleValue}] }]}>
+              <Art art={cogArt} box={"0 0 64 64"} size={40} />
+            </Animated.View>
+          </Pressable>
+
+
           <TouchableOpacity //Setting button
             style={[
               styles.settingsButton,

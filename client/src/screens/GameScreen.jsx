@@ -79,29 +79,17 @@ export default function GameScreen() {
   useEffect(() => {
     if (mode !== "online" || isHost || !session) return;
     session.setOnGameEnded?.(() => {
+      if (isLeavingRef.current) return
+      isLeavingRef.current = true
       endSession();
       router.replace("/");
     });
   }, [mode, isHost, endSession, router]);
 
-  // const gameOverBroadcastRef = useRef(false)
-  // useEffect(() => {
-  //   if (mode !== "online" || !isHost || !hostSession || !state) return
-
-  //   const playersWithChips = state.players.filter((p) => p.chips > 0).length
-  //   const gameIsOver = state.phase === "showdown" && playersWithChips < 2
-
-  //   if (gameIsOver && !gameOverBroadcastRef.current) {
-  //     gameOverBroadcastRef.current = true
-  //     hostSession.endGame()
-  //   }
-
-  //   if (!gameIsOver) {
-  //     gameOverBroadcastRef.current = false
-  //   }
-  // }, [mode, isHost, hostSession, state])
-
+  const isLeavingRef = useRef(false)
   const handleLeave = useCallback(() => {
+    if (isLeavingRef.current) return
+    isLeavingRef.current = true
     endSession();
     router.replace("/");
   }, [endSession, router]);
@@ -211,7 +199,7 @@ export default function GameScreen() {
           contentContainerStyle={styles.opponentRow}
           showsHorizontalScrollIndicator={false}
         >
-          {opponents.map(renderOpponent)}
+          {!isLeavingRef.current && opponents.map(renderOpponent)}
         </ScrollView>
 
         <View style={styles.opponentRow} pointerEvents="none">
