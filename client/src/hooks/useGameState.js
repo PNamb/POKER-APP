@@ -33,6 +33,22 @@ export function useGameState({
 
   const lastReceivedStateRef = useRef(null);
 
+  const isActiveRef = useRef(true)
+
+  useEffect(() => {
+    return () => {
+      isActiveRef.current = false
+      if (botTimeoutRef.current) {
+        clearTimeout(botTimeoutRef.current)
+        botTimeoutRef.current = null
+      }
+      if (transitionRef.current) {
+        clearTimeout(transitionRef.current)
+        transitionRef.current = null
+      }
+    }
+  }, [])
+
   const commitState = useCallback((prevState, nextState) => {
     if (botTimeoutRef.current) {
       clearTimeout(botTimeoutRef.current);
@@ -162,9 +178,15 @@ export function useGameState({
     if (!activePlayer?.isBot) return;
 
     botTimeoutRef.current = setTimeout(() => {
-      const action = botAction(state, state.activeIndex, botDifficulty);
-      const next = applyAction(state, state.activeIndex, action);
-      commitState(state, next);
+      if (!isActiveRef.current) return
+      try {
+        console.warn("[DEBUG] bot")
+        const action = botAction(state, state.activeIndex, botDifficulty);
+        const next = applyAction(state, state.activeIndex, action);
+        commitState(state, next);
+      } catch (e) {
+        console.warn("[useGameState] bot action failed", e)
+      }
     }, BOT_ACTION_DELAY);
 
     return () => clearTimeout(botTimeoutRef.current);
@@ -182,12 +204,18 @@ export function useGameState({
     const actingIndex = state.activeIndex;
 
     onlineBotTimeoutRef.current = setTimeout(() => {
-      const current = hostSession.state;
-
-      if (!current || current.activeIndex !== actingIndex) return;
-
-      const action = botAction(current, actingIndex, botDifficulty);
-      hostSession.handleBotAction(actingIndex, action);
+      if (!isActiveRef.current) return
+      try {
+        console.warn("[DEBUG] online-bot")
+        const current = hostSession.state;
+  
+        if (!current || current.activeIndex !== actingIndex) return;
+  
+        const action = botAction(current, actingIndex, botDifficulty);
+        hostSession.handleBotAction(actingIndex, action);
+      } catch (e) {
+        console.warn("[useGameState] online bot action failed", e)
+      }
     }, BOT_ACTION_DELAY);
 
     return () => clearTimeout(onlineBotTimeoutRef.current);

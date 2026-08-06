@@ -67,7 +67,12 @@ export function NetworkSessionProvider({ children }) {
             );
             return;
           }
-          channel.send(JSON.stringify(message));
+          
+          try {
+            channel.send(JSON.stringify(message));
+          } catch (e) {
+            console.warn("[NetworkSessionContext] send failed for", connectionID, e)
+          }
         },
         closeConnection,
         hostName,
@@ -143,7 +148,11 @@ export function NetworkSessionProvider({ children }) {
           );
           return;
         }
-        channel.send(JSON.stringify(message));
+        try {
+          channel.send(JSON.stringify(message));
+        } catch (e) {
+          console.warn("[NetworkSessionContext] send to host failed", e)
+        }
       },
       playerName,
     });

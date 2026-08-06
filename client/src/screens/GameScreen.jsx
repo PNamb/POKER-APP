@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
-  TouchableOpacity,
   BackHandler,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -21,6 +20,7 @@ import { Colors, Radius, Spacing, Typography } from "../constants/theme";
 import { nextActiveIndex } from "@/game/game-engine";
 import { useHaptics } from "@/hooks/useHaptics";
 import { useNetworkSession } from "@/contexts/NetworkSessionContext";
+import PressableButton from "@/components/PressableButton";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -34,6 +34,7 @@ export default function GameScreen() {
   const [isAdvancing, setIsAdvancing] = useState(false);
 
   const mode = params.mode ?? "bot";
+  console.warn("[DEBUG] GameScreen mounted with params.mode:", params.mode, "-> resolved mode:", mode);
   const numBots = params.numBots ?? 2;
   const roomCode = params.roomCode;
   const isHost = params.isHost === "true";
@@ -237,7 +238,7 @@ export default function GameScreen() {
                     wins the game
                   </Text>
                   {(mode === "bot" || isHost) && (
-                    <TouchableOpacity
+                    <PressableButton
                       style={[
                         styles.endRoundButton,
                         { backgroundColor: Colors.border.danger },
@@ -245,12 +246,12 @@ export default function GameScreen() {
                       onPress={handleEndGame}
                     >
                       <Text style={styles.endGameButton}>END GAME</Text>
-                    </TouchableOpacity>
+                    </PressableButton>
                   )}
                 </>
               ) : (
                 (mode === "bot" || isHost) && (
-                  <TouchableOpacity
+                  <PressableButton
                     style={[
                       styles.endRoundButton,
                       { backgroundColor: Colors.action.raise },
@@ -258,7 +259,7 @@ export default function GameScreen() {
                     onPress={handleNextHand}
                   >
                     <Text style={styles.nextHandButton}>NEXT HAND</Text>
-                  </TouchableOpacity>
+                  </PressableButton>
                 )
               )}
             </View>

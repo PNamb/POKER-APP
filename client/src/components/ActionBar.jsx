@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import Slider from "@react-native-community/slider";
 import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
 import * as Haptics from "expo-haptics";
 import { useApp } from "@/contexts/AppContext";
 import { useHaptics } from "@/hooks/useHaptics";
+import PressableButton from "./PressableButton";
 
 export default function ActionBar({
   legalActions, //object gotten from getLegalActions - stores the action buttons that can be used, and the call amount and min raise
@@ -37,7 +38,7 @@ export default function ActionBar({
 
   const renderFoldButton = () => {
     return (
-      <TouchableOpacity
+      <PressableButton
         style={[
           styles.button,
           styles.foldButton,
@@ -50,13 +51,13 @@ export default function ActionBar({
         disabled={isFoldDisabled}
       >
         <Text style={styles.buttonText}>FOLD</Text>
-      </TouchableOpacity>
+      </PressableButton>
     );
   };
 
   const renderCheckButton = () => {
     return (
-      <TouchableOpacity
+      <PressableButton
         style={[
           styles.button,
           styles.checkButton,
@@ -69,13 +70,13 @@ export default function ActionBar({
         disabled={isCheckDisabled}
       >
         <Text style={styles.buttonText}>CHECK</Text>
-      </TouchableOpacity>
+      </PressableButton>
     );
   };
 
   const renderCallButton = () => {
     return (
-      <TouchableOpacity
+      <PressableButton
         style={[
           styles.button,
           styles.callButton,
@@ -88,7 +89,7 @@ export default function ActionBar({
         disabled={isCallDisabled}
       >
         <Text style={styles.buttonText}>CALL</Text>
-      </TouchableOpacity>
+      </PressableButton>
     );
   };
 
@@ -130,7 +131,7 @@ export default function ActionBar({
 
   const renderRaiseButton = () => {
     return (
-      <TouchableOpacity
+      <PressableButton
         style={[
           styles.button,
           styles.raiseButton,
@@ -143,7 +144,7 @@ export default function ActionBar({
         disabled={isRaiseDisabled}
       >
         <Text style={styles.buttonText}>RAISE</Text>
-      </TouchableOpacity>
+      </PressableButton>
     );
   };
 

@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   FlatList,
 } from "react-native";
@@ -14,6 +13,7 @@ import { chipArt, altChipArt } from "@/assets/SVG-icons";
 import { useHaptics } from "@/hooks/useHaptics";
 import { useApp } from "@/contexts/AppContext";
 import { useNetworkSession } from "@/contexts/NetworkSessionContext";
+import PressableButton from "@/components/PressableButton";
 
 function Art({ art, box, size = 35, color = "#ac2525" }) {
   return (
@@ -44,6 +44,7 @@ export default function LobbyScreen() {
   const [playerName, setPlayerName] = useState(displayName || "");
   const [nameSubmitted, setNameSubmitted] = useState(false);
   const [connecting, setConnecting] = useState(false);
+  const [isOffline, setIsOffline] = useState(false)
 
   const { hostSession, session, startHosting, startJoining, endSession } =
     useNetworkSession();
@@ -87,6 +88,23 @@ export default function LobbyScreen() {
       clearTimeout(settingsDebounceRef.current);
     };
   }, [endSession]);
+
+  const handleContinueOffline = () => {
+    fireHaptics()
+    const trimmed = playerName.trim()
+    if (trimmed.length === 0) return;
+    if (BOT_NAME_PATTERN.test(trimmed)) {
+      setPlayerName("");
+      setError("Invalid name");
+      return;
+    }
+
+    setIsOffline(true)
+    setNameSubmitted(true)
+    setError(null)
+
+    setRoster([{name: trimmed, isBot: false, isHost: true}])
+  }
 
   const handleSubmitName = async () => {
     fireHaptics();
@@ -196,11 +214,26 @@ export default function LobbyScreen() {
 
   const handleAddBot = () => {
     fireHaptics();
+
+    if (isOffline) {
+      setRoster((prev) => [
+        ...prev,
+        {name: `Bot ${prev.filter(p => p.isBot).length + 1}`, isBot: true, botID: `bot-${Date.now()}`}
+      ])
+      return
+    }
+
     session?.requestAddBot();
   };
 
   const handleRemoveBot = (botID) => {
     fireHaptics();
+
+    if (isOffline) {
+      setRoster((prev) => prev.filter((p) => p.botID !== botID))
+      return
+    }
+
     session.requestRemoveBot(botID);
   };
 
@@ -233,12 +266,14 @@ export default function LobbyScreen() {
 
   const handleStartGame = () => {
     fireHaptics();
-    if (!hostSession) return;
+    if (!isOffline && !hostSession) return;
     const parsedChips = parseInt(chips, 10) || 500;
     const parsedBlind = parseInt(blind, 10) || 20;
 
     const otherHumans = roster.filter((p) => !p.isBot && !p.isHost);
+    console.warn("[DEBUG] otherHumans.length:", otherHumans.length, JSON.stringify(otherHumans));
     if (otherHumans.length === 0) {
+      console.warn("[DEBUG] taking BOT branch, pushing mode=bot");
       const numBots = roster.filter((p) => p.isBot).length;
       router.push({
         pathname: "/game",
@@ -254,6 +289,7 @@ export default function LobbyScreen() {
     }
 
     setGameStarting(true);
+    console.warn("[DEBUG] taking ONLINE branch, calling hostSession.startGame()");
     hostSession.startGame({
       startingChips: parsedChips,
       bigBlind: parsedBlind,
@@ -322,12 +358,12 @@ export default function LobbyScreen() {
           </>
         )}
         {item.isBot && isHost && (
-          <TouchableOpacity
+          <PressableButton
             style={[styles.removeBotButton, { backgroundColor: "#712c2c" }]}
             onPress={() => handleRemoveBot(item.botID)}
           >
             <Text style={styles.removeBotText}>✕</Text>
-          </TouchableOpacity>
+          </PressableButton>
         )}
       </View>
     );
@@ -336,9 +372,9 @@ export default function LobbyScreen() {
   const renderAddBotButton = () => {
     if (!isHost) return null;
     return (
-      <TouchableOpacity style={styles.addBotButton} onPress={handleAddBot}>
+      <PressableButton style={styles.addBotButton} onPress={handleAddBot}>
         <Text style={styles.addBotText}>+</Text>
-      </TouchableOpacity>
+      </PressableButton>
     );
   };
 
@@ -346,9 +382,9 @@ export default function LobbyScreen() {
     //if we haven't submitted out name yet, render the input box
     return (
       <View style={styles.container}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+        <PressableButton style={styles.backButton} onPress={handleBack}>
           <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
+        </PressableButton>
         <View style={styles.content}>
           <Text style={styles.title}>Enter Name</Text>
 
@@ -366,7 +402,7 @@ export default function LobbyScreen() {
             editable={!connecting}
           />
 
-          <TouchableOpacity
+          <PressableButton
             style={[
               styles.primaryButton,
               playerName.trim().length === 0 && styles.dimmed,
@@ -375,9 +411,20 @@ export default function LobbyScreen() {
             disabled={playerName.trim().length === 0 || connecting}
           >
             <Text style={styles.primaryButtonText}>
-              {connecting ? "CONNECTING..." : "CONTINUE"}
+              {connecting ? "CONNECTING..." : "CONTINUE ONLINE"}
             </Text>
-          </TouchableOpacity>
+          </PressableButton>
+
+          <PressableButton
+            style={[
+              styles.primaryButton, {backgroundColor: Colors.border.subtle}, {borderColor: Colors.border.muted},
+              playerName.trim().length === 0 && styles.dimmed,
+            ]}
+            onPress = {handleContinueOffline}
+            disabled = {playerName.trim().length === 0 || connecting}
+          >
+            <Text style = {styles.primaryButtonText}>CONTINUE OFFLINE</Text>
+          </PressableButton>
         </View>
       </View>
     );
@@ -386,15 +433,15 @@ export default function LobbyScreen() {
   return (
     //if we have submitted our name, render the room code, the current player list, and either a start button or waiting button
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+      <PressableButton style={styles.backButton} onPress={handleBack}>
         <Text style={styles.backText}>Back</Text>
-      </TouchableOpacity>
+      </PressableButton>
       <View style={styles.content}>
         <Text style={styles.title}>Lobby</Text>
 
         <View style={styles.codeBlock}>
           <Text style={styles.codeLabel}>ROOM CODE</Text>
-          <Text style={styles.codeValue}>{roomCode ?? "------"}</Text>
+          <Text style={styles.codeValue}>{isOffline ? "-OFFLINE-" : (roomCode ?? "------")}</Text>
         </View>
 
         <View style={styles.playerList}>
@@ -404,11 +451,11 @@ export default function LobbyScreen() {
             extraData={[chips, blind]}
             keyExtractor={(item) => item.botID ?? item.name}
             renderItem={renderPlayer}
-            ListFooterComponent={renderAddBotButton}
+            ListFooterComponent={roster.length <= 22 ? renderAddBotButton: null}
           />
         </View>
         {isHost ? (
-          <TouchableOpacity
+          <PressableButton
             style={[
               styles.primaryButton,
               (roster.length < 2 || gameStarting) && styles.dimmed,
@@ -419,7 +466,7 @@ export default function LobbyScreen() {
             <Text style={styles.primaryButtonText}>
               {gameStarting ? "STARTING..." : "START GAME"}
             </Text>
-          </TouchableOpacity>
+          </PressableButton>
         ) : (
           <Text style={styles.waitingText}>Waiting for host to start...</Text>
         )}

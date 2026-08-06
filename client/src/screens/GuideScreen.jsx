@@ -10,7 +10,6 @@ import {
   Text,
   ScrollView,
   FlatList,
-  TouchableOpacity,
   StyleSheet,
   Dimensions,
   InteractionManager,
@@ -24,6 +23,7 @@ import CommunityCards from "@/components/CommunityCards";
 import PotDisplay from "@/components/PotDisplay";
 import PlayerSeat from "@/components/PlayerSeat";
 import ActionBar from "@/components/ActionBar";
+import PressableButton from "@/components/PressableButton";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 

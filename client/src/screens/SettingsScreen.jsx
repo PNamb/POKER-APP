@@ -4,13 +4,14 @@ import { Colors, Spacing, Typography, Radius } from "@/constants/theme";
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   TextInput,
+  Pressable
 } from "react-native";
 import Slider from "@react-native-community/slider";
 import { useApp } from "@/contexts/AppContext";
 import { useHaptics } from "@/hooks/useHaptics";
+import PressableButton from "@/components/PressableButton";
 
 function Section({ title, children }) {
   return (
@@ -49,12 +50,12 @@ function SliderRow({ label, value, onChange, onCommit }) {
 
 function ToggleRow({ label, value, onChange }) {
   return (
-    <TouchableOpacity style={styles.row} onPress={() => onChange(!value)}>
+    <Pressable style={styles.row} onPress={() => onChange(!value)}>
       <Text style={styles.rowLabel}>{label}</Text>
       <View style={[styles.toggle, value && styles.toggleOn]}>
         <View style={[styles.toggleKnob, value && styles.toggleKnobOn]} />
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -64,7 +65,7 @@ function LevelRow({ label, value, onChange, OPTIONS }) {
       <Text style={styles.rowLabel}>{label}</Text>
       <View style={styles.segmentedControl}>
         {OPTIONS.map((o) => (
-          <TouchableOpacity
+          <PressableButton
             key={o.key}
             style={[styles.segment, value === o.key && styles.segmentActive]}
             onPress={() => onChange(o.key)}
@@ -77,7 +78,7 @@ function LevelRow({ label, value, onChange, OPTIONS }) {
             >
               {o.label}
             </Text>
-          </TouchableOpacity>
+          </PressableButton>
         ))}
       </View>
     </View>
@@ -154,9 +155,9 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.container}>
-      {/* <TouchableOpacity style = {styles.backButton} onPress = {handleBack}>
+      {/* <PressableButton style = {styles.backButton} onPress = {handleBack}>
                 <Text style = {styles.backText}>Back</Text>
-            </TouchableOpacity> */}
+            </PressableButton> */}
 
       <Text style={styles.pageTitle}>Settings</Text>
 

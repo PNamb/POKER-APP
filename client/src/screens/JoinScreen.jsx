@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   TextInput,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Colors, Spacing, Typography, Radius } from "@/constants/theme";
 import { useHaptics } from "@/hooks/useHaptics";
+import PressableButton from "@/components/PressableButton";
 
 const CODE_LENGTH = 6;
 
@@ -54,9 +54,9 @@ export default function JoinScreen() {
   return (
     //render the join button and enter-code input
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+      <PressableButton style={styles.backButton} onPress={handleBack}>
         <Text style={styles.backText}>Back</Text>
-      </TouchableOpacity>
+      </PressableButton>
 
       <View style={styles.content}>
         <Text style={styles.title}>Enter Code</Text>
@@ -74,13 +74,13 @@ export default function JoinScreen() {
         />
         {error && <Text style={styles.error}>{error}</Text>}
 
-        <TouchableOpacity
+        <PressableButton
           style={[styles.joinButton, !canSubmit && styles.dimmed]}
           onPress={handleJoin}
           disabled={!canSubmit}
         >
           <Text style={styles.joinButtonText}>JOIN</Text>
-        </TouchableOpacity>
+        </PressableButton>
       </View>
     </View>
   );

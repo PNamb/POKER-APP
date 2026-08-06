@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Pressable, Animated } from "react-native";
+import { View, Text, StyleSheet, Pressable, Animated } from "react-native";
+import PressableButton from "@/components/PressableButton"
 import { useRouter } from "expo-router";
 import { Colors, Spacing, Typography, Radius } from "@/constants/theme";
 import Svg, { Path } from "react-native-svg";
@@ -104,34 +105,22 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.actions}>
-        <TouchableOpacity
+        <PressableButton
           style={[styles.button, styles.hostButton]}
           onPress={handleHost}
         >
           <Text style={styles.buttonText}>HOST</Text>
-        </TouchableOpacity>
+        </PressableButton>
 
-        <TouchableOpacity
+        <PressableButton
           style={[styles.button, styles.joinButton]}
           onPress={handleJoin}
         >
           <Text style={styles.buttonText}>JOIN</Text>
-        </TouchableOpacity>
+        </PressableButton>
 
         <View style={styles.settingsButtonRow}>
-          <Pressable //Alternate Setting button
-            onPressIn = {handlePressIn}
-            onPressOut = {handlePressOut}
-            onPress = {handleSettings}
-          >
-            <Animated.View 
-            style={[ styles.settingsButton, { backgroundColor: Colors.background.settings }, { borderColor: "#89b3f3" }, { transform: [{scale: scaleValue}] }]}>
-              <Art art={cogArt} box={"0 0 64 64"} size={40} />
-            </Animated.View>
-          </Pressable>
-
-
-          <TouchableOpacity //Setting button
+          <PressableButton //Setting button
             style={[
               styles.settingsButton,
               { backgroundColor: Colors.background.settings },
@@ -140,9 +129,9 @@ export default function HomeScreen() {
             onPress={handleSettings}
           >
             <Art art={cogArt} box={"0 0 64 64"} size={40} />
-          </TouchableOpacity>
+          </PressableButton>
 
-          <TouchableOpacity //Sound on/off button
+          <PressableButton //Sound on/off button
             style={[
               styles.settingsButton,
               { backgroundColor: Colors.background.sound },
@@ -159,9 +148,9 @@ export default function HomeScreen() {
               size={40}
               isStroke={false}
             />
-          </TouchableOpacity>
+          </PressableButton>
 
-          <TouchableOpacity //Profile button
+          <PressableButton //Profile button
             style={[
               styles.settingsButton,
               { backgroundColor: Colors.background.profile },
@@ -170,9 +159,9 @@ export default function HomeScreen() {
             onPress={handleProfile}
           >
             <Art art={profileArt} box={"0 0 24 24"} size={40} />
-          </TouchableOpacity>
+          </PressableButton>
 
-          <TouchableOpacity //Guide button
+          <PressableButton //Guide button
             style={[
               styles.settingsButton,
               { backgroundColor: Colors.background.guide },
@@ -181,16 +170,16 @@ export default function HomeScreen() {
             onPress={handleGuide}
           >
             <Art art={bookArt} box={"0 0 24 24"} size={40} />
-          </TouchableOpacity>
+          </PressableButton>
         </View>
 
-        <TouchableOpacity style={styles.devButton} onPress={handleUITest}>
+        <PressableButton style={styles.devButton} onPress={handleUITest}>
           <Text style={styles.devButtonText}>🛠 UI Test Harness</Text>
-        </TouchableOpacity>
+        </PressableButton>
 
-        <TouchableOpacity style={styles.devButton} onPress={handleNetworkTest}>
+        <PressableButton style={styles.devButton} onPress={handleNetworkTest}>
           <Text style={styles.devButtonText}>Network Test</Text>
-        </TouchableOpacity>
+        </PressableButton>
       </View>
     </View>
   );
